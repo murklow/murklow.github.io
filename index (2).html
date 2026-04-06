@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление арендой</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --card: #181c26;
+    --border: #252a38;
+    --accent: #4f8aff;
+    --accent2: #7c5cfc;
+    --green: #2ddc8a;
+    --yellow: #f5c842;
+    --red: #ff4f6a;
+    --text: #e8ecf4;
+    --muted: #6b7390;
+    --muted2: #9aa0b8;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Geologica', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .logo-block h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(22px, 3vw, 32px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-block p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .hstat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 22px;
+    text-align: center;
+  }
+
+  .hstat-val {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .hstat-val.green { color: var(--green); }
+  .hstat-val.yellow { color: var(--yellow); }
+  .hstat-val.red { color: var(--red); }
+
+  .hstat-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* TODAY DATE */
+  .today-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .today-pill {
+    background: linear-gradient(135deg, rgba(79,138,255,0.15), rgba(124,92,252,0.15));
+    border: 1px solid rgba(79,138,255,0.3);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 13px;
+    color: var(--accent);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 400;
+  }
+
+  /* ADD BUTTON */
+  .btn-add {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    margin-left: auto;
+  }
+
+  .btn-add:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* GRID OF CARDS */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+  }
+
+  /* APARTMENT CARD */
+  .apt-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+
+  .apt-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .apt-card.overdue { border-color: rgba(255,79,106,0.5); }
+  .apt-card.warning { border-color: rgba(245,200,66,0.4); }
+  .apt-card.ok { border-color: rgba(45,220,138,0.25); }
+
+  .card-stripe {
+    height: 4px;
+    width: 100%;
+  }
+
+  .card-stripe.overdue { background: linear-gradient(90deg, var(--red), #ff8fa0); }
+  .card-stripe.warning { background: linear-gradient(90deg, var(--yellow), #ffe082); }
+  .card-stripe.ok { background: linear-gradient(90deg, var(--green), #7fffd4); }
+
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .apt-number {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .apt-address {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .status-badge {
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .status-badge.overdue { background: rgba(255,79,106,0.15); color: var(--red); border: 1px solid rgba(255,79,106,0.3); }
+  .status-badge.warning { background: rgba(245,200,66,0.12); color: var(--yellow); border: 1px solid rgba(245,200,66,0.3); }
+  .status-badge.ok { background: rgba(45,220,138,0.1); color: var(--green); border: 1px solid rgba(45,220,138,0.25); }
+
+  .card-body { padding: 18px 22px; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .info-item { }
+
+  .info-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .info-val {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .info-val.accent { color: var(--accent); }
+  .info-val.green { color: var(--green); }
+  .info-val.yellow { color: var(--yellow); }
+  .info-val.red { color: var(--red); }
+  .info-val.big {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* PAYMENT ROW */
+  .payment-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .payment-row:hover { border-color: rgba(79,138,255,0.3); }
+
+  .payment-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .payment-icon.rent { background: rgba(79,138,255,0.15); }
+  .payment-icon.utility { background: rgba(124,92,252,0.15); }
+  .payment-icon.repair { background: rgba(245,200,66,0.1); }
+
+  .payment-info { flex: 1; min-width: 0; }
+
+  .payment-name {
+    font-size: 12px;
+    color: var(--muted2);
+    margin-bottom: 2px;
+  }
+
+  .payment-amount {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .payment-due {
+    font-size: 12px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .payment-due .due-label { color: var(--muted); margin-bottom: 2px; }
+  .payment-due .due-date { font-weight: 600; }
+
+  /* CARD FOOTER */
+  .card-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 9px;
+    padding: 9px 14px;
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+
+  .btn:hover { opacity: 0.8; transform: translateY(-1px); }
+
+  .btn-edit {
+    background: rgba(79,138,255,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(79,138,255,0.25);
+  }
+
+  .btn-paid {
+    background: rgba(45,220,138,0.12);
+    color: var(--green);
+    border: 1px solid rgba(45,220,138,0.2);
+  }
+
+  .btn-delete {
+    background: rgba(255,79,106,0.1);
+    color: var(--red);
+    border: 1px solid rgba(255,79,106,0.2);
+    flex: 0;
+    padding: 9px 14px;
+  }
+
+  /* COUNTDOWN CHIP */
+  .countdown {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+  }
+
+  .countdown.overdue { background: rgba(255,79,106,0.15); color: var(--red); }
+  .countdown.warning { background: rgba(245,200,66,0.12); color: var(--yellow); }
+  .countdown.ok { background: rgba(45,220,138,0.1); color: var(--green); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 26px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover { background: rgba(255,79,106,0.15); color: var(--red); }
+
+  .modal-body { padding: 24px 28px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  input, textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+
+  input:focus, textarea:focus {
+    border-color: rgba(79,138,255,0.5);
+    box-shadow: 0 0 0 3px rgba(79,138,255,0.1);
+  }
+
+  input[type="date"] { cursor: pointer; }
+
+  .modal-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    border-radius: 10px;
+    padding: 11px 24px;
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    padding: 11px 28px;
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-save:hover { opacity: 0.85; }
+  .btn-cancel:hover { background: rgba(255,255,255,0.1); }
+
+  /* TENANT INFO */
+  .tenant-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 16px;
+    margin-bottom: 16px;
+  }
+
+  .tenant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(79,138,255,0.2), rgba(124,92,252,0.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .tenant-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .tenant-phone { font-size: 12px; color: var(--muted2); margin-top: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    grid-column: 1 / -1;
+  }
+
+  .empty-state h2 { font-family: 'Unbounded', sans-serif; font-size: 18px; margin-bottom: 10px; color: var(--muted2); }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(79,138,255,0.12);
+    border-color: rgba(79,138,255,0.35);
+    color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  /* DEBT EDIT */
+  .btn-update-debt {
+    background: rgba(79,138,255,0.12);
+    border: 1px solid rgba(79,138,255,0.25);
+    border-radius: 7px;
+    color: var(--accent);
+    font-size: 13px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+    flex-shrink: 0;
+    padding: 0;
+  }
+
+  .btn-update-debt:hover { background: rgba(79,138,255,0.25); transform: scale(1.1); }
+
+  .debt-edit-panel {
+    display: none;
+    margin-bottom: 10px;
+  }
+
+  .debt-edit-panel.open { display: block; }
+
+  .debt-edit-inner {
+    background: rgba(79,138,255,0.06);
+    border: 1px solid rgba(79,138,255,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .debt-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Geologica', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    min-width: 0;
+    transition: border-color 0.2s;
+  }
+
+  .debt-input:focus { border-color: rgba(79,138,255,0.5); }
+
+  .btn-debt-save {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+  }
+
+  .btn-debt-save:hover { opacity: 0.85; }
+
+  .btn-debt-zero {
+    background: rgba(45,220,138,0.1);
+    border: 1px solid rgba(45,220,138,0.25);
+    border-radius: 8px;
+    color: var(--green);
+    font-family: 'Geologica', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .btn-debt-zero:hover { background: rgba(45,220,138,0.2); }
+
+  /* SPINNER */
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SETUP SCREEN */
+  .setup-screen {
+    grid-column: 1 / -1;
+    background: var(--card);
+    border: 1px solid rgba(79,138,255,0.25);
+    border-radius: 20px;
+    padding: 48px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .setup-icon { font-size: 48px; margin-bottom: 16px; }
+  .setup-screen h2 { font-family: 'Unbounded', sans-serif; font-size: 20px; margin-bottom: 12px; color: var(--text); }
+  .setup-screen p { font-size: 14px; color: var(--muted2); line-height: 1.6; }
+  .setup-steps { margin-top: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .setup-step { display: flex; align-items: flex-start; gap: 14px; font-size: 13px; color: var(--muted2); line-height: 1.5; }
+  .step-num {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .setup-step a { color: var(--accent); text-decoration: none; }
+  .setup-step b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo-block">
+      <h1>Аренда квартир</h1>
+    </div>
+    <div class="header-stats" id="headerStats"></div>
+  </header>
+
+  <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px; flex-wrap:wrap;">
+    <div class="today-pill" id="todayPill"></div>
+    <span id="syncStatus" style="font-size:12px;transition:color 0.3s;"></span>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterCards('all', this)">Все</button>
+      <button class="filter-btn" onclick="filterCards('overdue', this)" style="color:var(--red); border-color:rgba(255,79,106,0.2);">⚠ Просроченные</button>
+      <button class="filter-btn" onclick="filterCards('warning', this)" style="color:var(--yellow); border-color:rgba(245,200,66,0.2);">⏳ Скоро платёж</button>
+      <button class="filter-btn" onclick="filterCards('ok', this)">✓ Оплачено</button>
+    </div>
+    <button class="btn-add" onclick="openModal()">+ Добавить квартиру</button>
+  </div>
+
+  <div class="grid" id="apartmentGrid"></div>
+
+  <!-- LOADER -->
+  <div id="loader" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;">
+    <div class="spinner"></div>
+    <p style="color:var(--muted);font-size:14px;">Загрузка данных из Google Sheets...</p>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Новая квартира</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="section-label">Объект</p>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Адрес квартиры</label>
+          <input type="text" id="f_address" placeholder="ул. Пушкина, д. 5, кв. 12">
+        </div>
+      </div>
+
+      <p class="section-label" style="margin-top:8px;">Арендатор</p>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>ФИО арендатора</label>
+          <input type="text" id="f_tenant" placeholder="Иванов Иван Иванович">
+        </div>
+        <div class="form-group">
+          <label>Номер телефона</label>
+          <input type="tel" id="f_phone" placeholder="+7 999 123-45-67">
+        </div>
+        <div class="form-group">
+          <label>Дата начала аренды</label>
+          <input type="date" id="f_start">
+        </div>
+      </div>
+
+      <p class="section-label" style="margin-top:8px;">Платежи</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Стоимость аренды (₽/мес)</label>
+          <input type="number" id="f_rent" placeholder="35000">
+        </div>
+        <div class="form-group">
+          <label>День оплаты аренды</label>
+          <input type="number" id="f_rent_day" placeholder="10" min="1" max="28">
+        </div>
+        <div class="form-group">
+          <label>Остаток по коммуналке (₽)</label>
+          <input type="number" id="f_utility_debt" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>Капитальный ремонт (₽/мес)</label>
+          <input type="number" id="f_repair" placeholder="800">
+        </div>
+        <div class="form-group">
+          <label>Статус аренды</label>
+          <input type="text" id="f_rent_status" placeholder="Оплачена / Не оплачена">
+        </div>
+      </div>
+
+      <p class="section-label" style="margin-top:4px;">Заметки</p>
+      <div class="form-group">
+        <label>Дополнительно</label>
+        <textarea id="f_notes" rows="2" placeholder="Любые заметки по квартире..." style="resize:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-save" onclick="saveApartment()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  НАСТРОЙКА — вставьте сюда URL вашего Apps Script Web App
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8QY2tSXznc0Tg3RldmoslfzwG9NaSkDjaGxv6IR4Oze5bgT7KPCqSDxAAT9JolQiuPg/exec';
+
+// ============================================================
+//  DATA
+// ============================================================
+const today = new Date();
+today.setHours(0,0,0,0);
+
+let apartments = [];
+let editingId = null;
+let currentFilter = 'all';
+let isSaving = false;
+
+// ---- Загрузка с Google Sheets ----
+async function loadFromSheet() {
+  showLoader(true);
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const json = await res.json();
+    if (json.ok) {
+      apartments = json.data;
+    } else {
+      showError('Ошибка загрузки данных из таблицы');
+    }
+  } catch(e) {
+    // Если URL не настроен — показываем экран настройки
+    if (SCRIPT_URL === 'ВСТАВЬТЕ_СЮДА_URL_ВЕБ_ПРИЛОЖЕНИЯ') {
+      showSetupScreen();
+      return;
+    }
+    showError('Не удалось подключиться к Google Sheets: ' + e.message);
+  }
+  showLoader(false);
+  renderAll();
+}
+
+// ---- Сохранение в Google Sheets ----
+async function save() {
+  if (isSaving) return;
+  isSaving = true;
+  setSyncStatus('saving');
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ data: apartments }),
+    });
+    const json = await res.json();
+    if (json.ok) {
+      setSyncStatus('saved');
+    } else {
+      setSyncStatus('error');
+    }
+  } catch(e) {
+    setSyncStatus('error');
+  }
+  isSaving = false;
+}
+
+function setSyncStatus(s) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  const map = {
+    saving: { text: '⟳ Сохранение...', color: 'var(--muted2)' },
+    saved:  { text: '✓ Сохранено', color: 'var(--green)' },
+    error:  { text: '✕ Ошибка сохранения', color: 'var(--red)' },
+  };
+  el.textContent = map[s].text;
+  el.style.color = map[s].color;
+  if (s === 'saved') setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function showLoader(on) {
+  document.getElementById('loader').style.display = on ? 'flex' : 'none';
+  document.getElementById('apartmentGrid').style.display = on ? 'none' : 'grid';
+}
+
+function showError(msg) {
+  showLoader(false);
+  document.getElementById('apartmentGrid').innerHTML =
+    `<div class="empty-state"><h2 style="color:var(--red)">⚠ Ошибка</h2><p>${msg}</p></div>`;
+}
+
+function showSetupScreen() {
+  showLoader(false);
+  document.getElementById('apartmentGrid').innerHTML = `
+    <div class="setup-screen">
+      <div class="setup-icon">🔗</div>
+      <h2>Подключите Google Sheets</h2>
+      <p>Чтобы данные синхронизировались на всех устройствах, нужно один раз настроить Google Apps Script.</p>
+      <div class="setup-steps">
+        <div class="setup-step"><span class="step-num">1</span><span>Откройте <a href="https://script.google.com" target="_blank">script.google.com</a> → «Новый проект»</span></div>
+        <div class="setup-step"><span class="step-num">2</span><span>Вставьте код из файла <b>google_apps_script.gs</b> (из скачанного архива)</span></div>
+        <div class="setup-step"><span class="step-num">3</span><span>Нажмите «Развернуть» → «Новое развёртывание» → тип «Веб-приложение», доступ «Все»</span></div>
+        <div class="setup-step"><span class="step-num">4</span><span>Скопируйте URL веб-приложения и вставьте в переменную <b>SCRIPT_URL</b> в HTML-файле</span></div>
+        <div class="setup-step"><span class="step-num">5</span><span>Загрузите обновлённый HTML на Netlify</span></div>
+      </div>
+      <p style="margin-top:20px;font-size:12px;color:var(--muted);">Это нужно сделать один раз. После этого данные будут синхронизироваться на всех устройствах автоматически.</p>
+    </div>`;
+}
+
+// ============================================================
+//  STATUS CALCULATION
+// ============================================================
+function getStatus(apt) {
+  const d = today.getDate();
+  const urgentRent = apt.rent_status !== 'Оплачена' && d >= apt.rent_day - 3;
+  const overdueRent = apt.rent_status !== 'Оплачена' && d > apt.rent_day;
+
+  if (overdueRent || apt.utility_debt > 0) return 'overdue';
+  if (urgentRent) return 'warning';
+  return 'ok';
+}
+
+function daysUntil(day) {
+  const d = today.getDate();
+  const diff = day - d;
+  return diff;
+}
+
+function daysLabel(diff) {
+  if (diff < 0) return { text: `Просрочено ${Math.abs(diff)} дн.`, cls: 'overdue' };
+  if (diff === 0) return { text: 'Сегодня!', cls: 'overdue' };
+  if (diff <= 3) return { text: `Через ${diff} дн.`, cls: 'warning' };
+  return { text: `Через ${diff} дн.`, cls: 'ok' };
+}
+
+function fmt(n) {
+  return Number(n).toLocaleString('ru-RU') + ' ₽';
+}
+
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function monthsRenting(str) {
+  if (!str) return '';
+  const start = new Date(str);
+  const diff = (today.getFullYear() - start.getFullYear()) * 12 + today.getMonth() - start.getMonth();
+  if (diff < 1) return 'Только начали';
+  return `${diff} мес.`;
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function renderAll() {
+  renderCards();
+  renderHeader();
+}
+
+function renderCards() {
+  const grid = document.getElementById('apartmentGrid');
+  let list = apartments;
+  if (currentFilter !== 'all') list = apartments.filter(a => getStatus(a) === currentFilter);
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><h2>Нет квартир</h2><p>Добавьте первую квартиру через кнопку выше</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(apt => renderCard(apt)).join('');
+}
+
+function renderCard(apt) {
+  const status = getStatus(apt);
+  const statusLabels = { overdue: '⚠ Просрочено', warning: '⏳ Скоро платёж', ok: '✓ В порядке' };
+  const rentDiff = daysUntil(apt.rent_day);
+  const rentLabel = daysLabel(rentDiff);
+
+  return `
+  <div class="apt-card ${status}" data-id="${apt.id}" data-status="${status}">
+    <div class="card-stripe ${status}"></div>
+    <div class="card-head">
+      <div>
+        <div class="apt-number">Квартира #${apt.id}</div>
+        <div class="apt-address">${apt.address}</div>
+      </div>
+      <span class="status-badge ${status}">${statusLabels[status]}</span>
+    </div>
+    <div class="card-body">
+
+      <!-- Tenant -->
+      <div class="tenant-row">
+        <div class="tenant-avatar">${initials(apt.tenant)}</div>
+        <div>
+          <div class="tenant-name">${apt.tenant}</div>
+          <div class="tenant-phone">${apt.phone} &nbsp;·&nbsp; с ${formatDate(apt.start)} (${monthsRenting(apt.start)})</div>
+        </div>
+      </div>
+
+      <!-- Key numbers -->
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Аренда</div>
+          <div class="info-val big">${fmt(apt.rent)}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Статус аренды</div>
+          <div class="info-val ${apt.rent_status === 'Оплачена' ? 'green' : 'red'}">${apt.rent_status || '—'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Коммуналка (долг)</div>
+          <div class="info-val ${apt.utility_debt > 0 ? 'red' : 'green'}">${apt.utility_debt > 0 ? fmt(apt.utility_debt) : '✓ Нет долга'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Капремонт</div>
+          <div class="info-val accent">${fmt(apt.repair)}</div>
+        </div>
+      </div>
+
+      <!-- Payment rows -->
+      <p class="section-label">Ближайшие платежи</p>
+
+      <div class="payment-row">
+        <div class="payment-icon rent">🏠</div>
+        <div class="payment-info">
+          <div class="payment-name">Аренда</div>
+          <div class="payment-amount">${fmt(apt.rent)}</div>
+        </div>
+        <div class="payment-due">
+          <div class="due-label">День оплаты: ${apt.rent_day}-е</div>
+          <div class="due-date"><span class="countdown ${apt.rent_status === 'Оплачена' ? 'ok' : rentLabel.cls}">${apt.rent_status === 'Оплачена' ? '✓ Оплачена' : rentLabel.text}</span></div>
+        </div>
+      </div>
+
+      <div class="payment-row" id="util-row-${apt.id}">
+        <div class="payment-icon utility">💧</div>
+        <div class="payment-info">
+          <div class="payment-name">Коммунальные платежи</div>
+          <div class="payment-amount" id="util-amount-${apt.id}">${apt.utility_debt > 0 ? fmt(apt.utility_debt) : 'Нет долга'}</div>
+        </div>
+        <div class="payment-due" style="display:flex;align-items:center;gap:8px;">
+          <span class="countdown ${apt.utility_debt > 0 ? 'overdue' : 'ok'}" id="util-badge-${apt.id}">${apt.utility_debt > 0 ? '⚠ Есть долг' : '✓ Оплачено'}</span>
+          <button class="btn-update-debt" onclick="toggleDebtEdit(${apt.id})" title="Обновить долг">✏️</button>
+        </div>
+      </div>
+      <div class="debt-edit-panel" id="debt-edit-${apt.id}">
+        <div class="debt-edit-inner">
+          <span style="font-size:12px;color:var(--muted);">Укажите актуальную сумму долга (₽)</span>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="number" class="debt-input" id="debt-input-${apt.id}" placeholder="0" value="${apt.utility_debt}" min="0">
+            <button class="btn-debt-save" onclick="saveDebt(${apt.id})">Сохранить</button>
+            <button class="btn-debt-zero" onclick="zeroDebt(${apt.id})">✓ Нет долга</button>
+          </div>
+          <span style="font-size:11px;color:var(--muted);margin-top:8px;display:block;">Проверьте сумму на <a href="https://xn--80aalcmnoakn2b.xn--e1afmapc.xn--p1ai/" target="_blank" style="color:var(--accent);text-decoration:none;">квартплата.онлайн ↗</a> и введите актуальный остаток</span>
+        </div>
+      </div>
+
+      <div class="payment-row">
+        <div class="payment-icon repair">🔧</div>
+        <div class="payment-info">
+          <div class="payment-name">Капитальный ремонт</div>
+          <div class="payment-amount">${fmt(apt.repair)}</div>
+        </div>
+        <div class="payment-due">
+          <div class="due-label">Ежемесячно</div>
+        </div>
+      </div>
+
+      ${apt.notes ? `<div style="margin-top:12px;background:rgba(79,138,255,0.07);border:1px solid rgba(79,138,255,0.15);border-radius:9px;padding:10px 13px;font-size:12px;color:var(--muted2);">📝 ${apt.notes}</div>` : ''}
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-edit" onclick="openModal(${apt.id})">✏ Редактировать</button>
+      <button class="btn btn-paid" onclick="markRentPaid(${apt.id})">💸 Аренда оплачена</button>
+      <button class="btn btn-delete" onclick="deleteApt(${apt.id})" title="Удалить">🗑</button>
+    </div>
+  </div>`;
+}
+
+function renderHeader() {
+  const total = apartments.length;
+  const overdue = apartments.filter(a => getStatus(a) === 'overdue').length;
+  const warning = apartments.filter(a => getStatus(a) === 'warning').length;
+  const totalRent = apartments.reduce((s, a) => s + Number(a.rent || 0), 0);
+
+  document.getElementById('headerStats').innerHTML = `
+    <div class="hstat"><div class="hstat-val">${total}</div><div class="hstat-label">Квартир</div></div>
+    <div class="hstat"><div class="hstat-val">${fmt(totalRent).replace(' ₽','')}<span style="font-size:14px"> ₽</span></div><div class="hstat-label">Доход в месяц</div></div>
+    <div class="hstat"><div class="hstat-val red">${overdue}</div><div class="hstat-label">Просрочено</div></div>
+    <div class="hstat"><div class="hstat-val yellow">${warning}</div><div class="hstat-label">Скоро платёж</div></div>
+  `;
+
+  document.getElementById('todayPill').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// ============================================================
+//  ACTIONS
+// ============================================================
+function markRentPaid(id) {
+  const apt = apartments.find(a => a.id === id);
+  if (!apt) return;
+  apt.rent_status = 'Оплачена';
+  save();
+  renderAll();
+}
+
+function deleteApt(id) {
+  if (!confirm('Удалить квартиру? Это действие нельзя отменить.')) return;
+  apartments = apartments.filter(a => a.id !== id);
+  save();
+  renderAll();
+}
+
+function filterCards(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+// ============================================================
+//  MODAL
+// ============================================================
+function openModal(id) {
+  editingId = id || null;
+  document.getElementById('modalTitle').textContent = id ? 'Редактировать квартиру' : 'Новая квартира';
+
+  const apt = id ? apartments.find(a => a.id === id) : null;
+  document.getElementById('f_address').value = apt?.address || '';
+  document.getElementById('f_tenant').value = apt?.tenant || '';
+  document.getElementById('f_phone').value = apt?.phone || '';
+  document.getElementById('f_start').value = apt?.start || '';
+  document.getElementById('f_rent').value = apt?.rent || '';
+  document.getElementById('f_rent_day').value = apt?.rent_day || '';
+  document.getElementById('f_rent_status').value = apt?.rent_status || 'Не оплачена';
+  document.getElementById('f_utility_debt').value = apt?.utility_debt || 0;
+  document.getElementById('f_repair').value = apt?.repair || '';
+  document.getElementById('f_notes').value = apt?.notes || '';
+
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  editingId = null;
+}
+
+function saveApartment() {
+  const data = {
+    address: document.getElementById('f_address').value.trim(),
+    tenant: document.getElementById('f_tenant').value.trim(),
+    phone: document.getElementById('f_phone').value.trim(),
+    start: document.getElementById('f_start').value,
+    rent: Number(document.getElementById('f_rent').value) || 0,
+    rent_day: Number(document.getElementById('f_rent_day').value) || 10,
+    rent_status: document.getElementById('f_rent_status').value.trim() || 'Не оплачена',
+    utility_debt: Number(document.getElementById('f_utility_debt').value) || 0,
+    repair: Number(document.getElementById('f_repair').value) || 0,
+    notes: document.getElementById('f_notes').value.trim(),
+  };
+
+  if (!data.address || !data.tenant) {
+    alert('Пожалуйста, заполните адрес и ФИО арендатора.');
+    return;
+  }
+
+  if (editingId) {
+    const idx = apartments.findIndex(a => a.id === editingId);
+    if (idx !== -1) apartments[idx] = { ...apartments[idx], ...data };
+  } else {
+    const maxId = apartments.reduce((m, a) => Math.max(m, a.id), 0);
+    apartments.push({ id: maxId + 1, ...data });
+  }
+
+  save();
+  closeModal();
+  renderAll();
+}
+
+// Close on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ============================================================
+//  DEBT QUICK-UPDATE
+// ============================================================
+function toggleDebtEdit(id) {
+  const panel = document.getElementById('debt-edit-' + id);
+  const isOpen = panel.classList.contains('open');
+  // close all others
+  document.querySelectorAll('.debt-edit-panel').forEach(p => p.classList.remove('open'));
+  if (!isOpen) {
+    panel.classList.add('open');
+    document.getElementById('debt-input-' + id).focus();
+  }
+}
+
+function saveDebt(id) {
+  const val = Number(document.getElementById('debt-input-' + id).value) || 0;
+  const apt = apartments.find(a => a.id === id);
+  if (!apt) return;
+  apt.utility_debt = val;
+  save();
+  // update DOM without full re-render
+  document.getElementById('util-amount-' + id).textContent = val > 0 ? fmt(val) : 'Нет долга';
+  const badge = document.getElementById('util-badge-' + id);
+  badge.className = 'countdown ' + (val > 0 ? 'overdue' : 'ok');
+  badge.textContent = val > 0 ? '⚠ Есть долг' : '✓ Оплачено';
+  document.getElementById('debt-edit-' + id).classList.remove('open');
+  // update card border status
+  const card = document.querySelector('[data-id="' + id + '"]');
+  if (card) {
+    const newStatus = getStatus(apt);
+    card.className = 'apt-card ' + newStatus;
+    card.querySelector('.card-stripe').className = 'card-stripe ' + newStatus;
+    card.querySelector('.status-badge').className = 'status-badge ' + newStatus;
+    const statusLabels = { overdue: '⚠ Просрочено', warning: '⏳ Скоро платёж', ok: '✓ В порядке' };
+    card.querySelector('.status-badge').textContent = statusLabels[newStatus];
+  }
+  // update info-grid utility cell
+  const infoVal = card?.querySelectorAll('.info-val')[2];
+  if (infoVal) {
+    infoVal.className = 'info-val ' + (val > 0 ? 'red' : 'green');
+    infoVal.textContent = val > 0 ? fmt(val) : '✓ Нет долга';
+  }
+  renderHeader();
+}
+
+function zeroDebt(id) {
+  document.getElementById('debt-input-' + id).value = 0;
+  saveDebt(id);
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+loadFromSheet();
+</script>
+</body>
+</html>
