@@ -347,6 +347,12 @@
     border: 1px solid rgba(45,220,138,0.2);
   }
 
+  .btn-unpaid {
+    background: rgba(245,200,66,0.1);
+    color: var(--yellow);
+    border: 1px solid rgba(245,200,66,0.25);
+  }
+
   .btn-delete {
     background: rgba(255,79,106,0.1);
     color: var(--red);
@@ -731,12 +737,6 @@
   <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px; flex-wrap:wrap;">
     <div class="today-pill" id="todayPill"></div>
     <span id="syncStatus" style="font-size:12px;transition:color 0.3s;"></span>
-    <div class="filters">
-      <button class="filter-btn active" onclick="filterCards('all', this)">Все</button>
-      <button class="filter-btn" onclick="filterCards('overdue', this)" style="color:var(--red); border-color:rgba(255,79,106,0.2);">⚠ Просроченные</button>
-      <button class="filter-btn" onclick="filterCards('warning', this)" style="color:var(--yellow); border-color:rgba(245,200,66,0.2);">⏳ Скоро платёж</button>
-      <button class="filter-btn" onclick="filterCards('ok', this)">✓ Оплачено</button>
-    </div>
     <button class="btn-add" onclick="openModal()">+ Добавить квартиру</button>
   </div>
 
@@ -800,8 +800,8 @@
           <input type="number" id="f_repair" placeholder="800">
         </div>
         <div class="form-group">
-          <label>Статус аренды</label>
-          <input type="text" id="f_rent_status" placeholder="Оплачена / Не оплачена">
+          <label>Залог (₽)</label>
+          <input type="number" id="f_deposit" placeholder="35000">
         </div>
       </div>
 
@@ -822,7 +822,7 @@
 // ============================================================
 //  НАСТРОЙКА — вставьте сюда URL вашего Apps Script Web App
 // ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdt-ZEvsxZOMgaVAHcQosJ6Nig1_Q3PLCS63D56EKEZ0iWFg67ut8i99J1csokj9Gpjg/exec";
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdt-ZEvsxZOMgaVAHcQosJ6Nig1_Q3PLCS63D56EKEZ0iWFg67ut8i99J1csokj9Gpjg/exec';
 
 // ============================================================
 //  DATA
@@ -922,29 +922,43 @@ function showSetupScreen() {
     </div>`;
 }
 
+function currentYM() {
+  return `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+}
+
+function isRentPaidThisMonth(apt) {
+  return apt.rent_paid_month === currentYM();
+}
+
 // ============================================================
 //  STATUS CALCULATION
 // ============================================================
 function getStatus(apt) {
-  const d = today.getDate();
-  const urgentRent = apt.rent_status !== 'Оплачена' && d >= apt.rent_day - 3;
-  const overdueRent = apt.rent_status !== 'Оплачена' && d > apt.rent_day;
+  const paidThisMonth = isRentPaidThisMonth(apt);
+  const diff = rentDaysUntil(apt);
+  const overdueRent = !paidThisMonth && diff < 0;
+  const urgentRent = !paidThisMonth && diff <= 5;
+  const overdueUtil = apt.utility_debt >= 3000;
 
-  if (overdueRent || apt.utility_debt > 0) return 'overdue';
+  if (overdueRent || overdueUtil) return 'overdue';
   if (urgentRent) return 'warning';
   return 'ok';
 }
 
-function daysUntil(day) {
+function rentDaysUntil(apt) {
   const d = today.getDate();
-  const diff = day - d;
-  return diff;
+  if (isRentPaidThisMonth(apt)) {
+    // Считаем до следующего месяца
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, apt.rent_day);
+    return Math.round((nextMonth - today) / (1000 * 60 * 60 * 24));
+  }
+  return apt.rent_day - d;
 }
 
 function daysLabel(diff) {
   if (diff < 0) return { text: `Просрочено ${Math.abs(diff)} дн.`, cls: 'overdue' };
   if (diff === 0) return { text: 'Сегодня!', cls: 'overdue' };
-  if (diff <= 3) return { text: `Через ${diff} дн.`, cls: 'warning' };
+  if (diff <= 5) return { text: `Через ${diff} дн.`, cls: 'overdue' };
   return { text: `Через ${diff} дн.`, cls: 'ok' };
 }
 
@@ -994,7 +1008,7 @@ function renderCards() {
 function renderCard(apt) {
   const status = getStatus(apt);
   const statusLabels = { overdue: '⚠ Просрочено', warning: '⏳ Скоро платёж', ok: '✓ В порядке' };
-  const rentDiff = daysUntil(apt.rent_day);
+  const rentDiff = rentDaysUntil(apt);
   const rentLabel = daysLabel(rentDiff);
 
   return `
@@ -1025,12 +1039,12 @@ function renderCard(apt) {
           <div class="info-val big">${fmt(apt.rent)}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Статус аренды</div>
-          <div class="info-val ${apt.rent_status === 'Оплачена' ? 'green' : 'red'}">${apt.rent_status || '—'}</div>
+          <div class="info-label">Залог</div>
+          <div class="info-val accent">${apt.deposit ? fmt(apt.deposit) : '—'}</div>
         </div>
         <div class="info-item">
           <div class="info-label">Коммуналка (долг)</div>
-          <div class="info-val ${apt.utility_debt > 0 ? 'red' : 'green'}">${apt.utility_debt > 0 ? fmt(apt.utility_debt) : '✓ Нет долга'}</div>
+          <div class="info-val ${apt.utility_debt >= 3000 ? 'red' : 'green'}">${apt.utility_debt > 0 ? fmt(apt.utility_debt) : '✓ Нет долга'}</div>
         </div>
         <div class="info-item">
           <div class="info-label">Капремонт</div>
@@ -1049,7 +1063,7 @@ function renderCard(apt) {
         </div>
         <div class="payment-due">
           <div class="due-label">День оплаты: ${apt.rent_day}-е</div>
-          <div class="due-date"><span class="countdown ${apt.rent_status === 'Оплачена' ? 'ok' : rentLabel.cls}">${apt.rent_status === 'Оплачена' ? '✓ Оплачена' : rentLabel.text}</span></div>
+          <div class="due-date"><span class="countdown ${isRentPaidThisMonth(apt) ? 'ok' : rentLabel.cls}">${rentLabel.text}</span></div>
         </div>
       </div>
 
@@ -1060,7 +1074,7 @@ function renderCard(apt) {
           <div class="payment-amount" id="util-amount-${apt.id}">${apt.utility_debt > 0 ? fmt(apt.utility_debt) : 'Нет долга'}</div>
         </div>
         <div class="payment-due" style="display:flex;align-items:center;gap:8px;">
-          <span class="countdown ${apt.utility_debt > 0 ? 'overdue' : 'ok'}" id="util-badge-${apt.id}">${apt.utility_debt > 0 ? '⚠ Есть долг' : '✓ Оплачено'}</span>
+          <span class="countdown ${apt.utility_debt >= 3000 ? 'overdue' : 'ok'}" id="util-badge-${apt.id}">${apt.utility_debt > 0 ? '⚠ Есть долг' : '✓ Оплачено'}</span>
           <button class="btn-update-debt" onclick="toggleDebtEdit(${apt.id})" title="Обновить долг">✏️</button>
         </div>
       </div>
@@ -1091,7 +1105,10 @@ function renderCard(apt) {
     </div>
     <div class="card-footer">
       <button class="btn btn-edit" onclick="openModal(${apt.id})">✏ Редактировать</button>
-      <button class="btn btn-paid" onclick="markRentPaid(${apt.id})">💸 Аренда оплачена</button>
+      ${isRentPaidThisMonth(apt)
+        ? `<button class="btn btn-unpaid" onclick="unmarkRentPaid(${apt.id})">↩ Не оплачена</button>`
+        : `<button class="btn btn-paid" onclick="markRentPaid(${apt.id})">💸 Аренда оплачена</button>`
+      }
       <button class="btn btn-delete" onclick="deleteApt(${apt.id})" title="Удалить">🗑</button>
     </div>
   </div>`;
@@ -1099,15 +1116,15 @@ function renderCard(apt) {
 
 function renderHeader() {
   const total = apartments.length;
-  const overdue = apartments.filter(a => getStatus(a) === 'overdue').length;
-  const warning = apartments.filter(a => getStatus(a) === 'warning').length;
   const totalRent = apartments.reduce((s, a) => s + Number(a.rent || 0), 0);
+  const totalUtility = apartments.reduce((s, a) => s + Number(a.utility_debt || 0), 0);
+  const totalRepair = apartments.reduce((s, a) => s + Number(a.repair || 0), 0);
 
   document.getElementById('headerStats').innerHTML = `
     <div class="hstat"><div class="hstat-val">${total}</div><div class="hstat-label">Квартир</div></div>
     <div class="hstat"><div class="hstat-val">${fmt(totalRent).replace(' ₽','')}<span style="font-size:14px"> ₽</span></div><div class="hstat-label">Доход в месяц</div></div>
-    <div class="hstat"><div class="hstat-val red">${overdue}</div><div class="hstat-label">Просрочено</div></div>
-    <div class="hstat"><div class="hstat-val yellow">${warning}</div><div class="hstat-label">Скоро платёж</div></div>
+    <div class="hstat"><div class="hstat-val ${totalUtility > 0 ? 'red' : 'green'}">${fmt(totalUtility).replace(' ₽','')}<span style="font-size:14px"> ₽</span></div><div class="hstat-label">Долг по К/У</div></div>
+    <div class="hstat"><div class="hstat-val accent">${fmt(totalRepair).replace(' ₽','')}<span style="font-size:14px"> ₽</span></div><div class="hstat-label">Долг по капремонту</div></div>
   `;
 
   document.getElementById('todayPill').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -1119,7 +1136,15 @@ function renderHeader() {
 function markRentPaid(id) {
   const apt = apartments.find(a => a.id === id);
   if (!apt) return;
-  apt.rent_status = 'Оплачена';
+  apt.rent_paid_month = currentYM();
+  save();
+  renderAll();
+}
+
+function unmarkRentPaid(id) {
+  const apt = apartments.find(a => a.id === id);
+  if (!apt) return;
+  apt.rent_paid_month = '';
   save();
   renderAll();
 }
@@ -1152,7 +1177,8 @@ function openModal(id) {
   document.getElementById('f_start').value = apt?.start || '';
   document.getElementById('f_rent').value = apt?.rent || '';
   document.getElementById('f_rent_day').value = apt?.rent_day || '';
-  document.getElementById('f_rent_status').value = apt?.rent_status || 'Не оплачена';
+  document.getElementById('f_rent_status') && (document.getElementById('f_rent_status').value = apt?.rent_status || 'Не оплачена');
+  document.getElementById('f_deposit').value = apt?.deposit || '';
   document.getElementById('f_utility_debt').value = apt?.utility_debt || 0;
   document.getElementById('f_repair').value = apt?.repair || '';
   document.getElementById('f_notes').value = apt?.notes || '';
@@ -1173,7 +1199,7 @@ function saveApartment() {
     start: document.getElementById('f_start').value,
     rent: Number(document.getElementById('f_rent').value) || 0,
     rent_day: Number(document.getElementById('f_rent_day').value) || 10,
-    rent_status: document.getElementById('f_rent_status').value.trim() || 'Не оплачена',
+    deposit: Number(document.getElementById('f_deposit').value) || 0,
     utility_debt: Number(document.getElementById('f_utility_debt').value) || 0,
     repair: Number(document.getElementById('f_repair').value) || 0,
     notes: document.getElementById('f_notes').value.trim(),
@@ -1225,7 +1251,7 @@ function saveDebt(id) {
   // update DOM without full re-render
   document.getElementById('util-amount-' + id).textContent = val > 0 ? fmt(val) : 'Нет долга';
   const badge = document.getElementById('util-badge-' + id);
-  badge.className = 'countdown ' + (val > 0 ? 'overdue' : 'ok');
+  badge.className = 'countdown ' + (val >= 3000 ? 'overdue' : 'ok');
   badge.textContent = val > 0 ? '⚠ Есть долг' : '✓ Оплачено';
   document.getElementById('debt-edit-' + id).classList.remove('open');
   // update card border status
@@ -1241,7 +1267,7 @@ function saveDebt(id) {
   // update info-grid utility cell
   const infoVal = card?.querySelectorAll('.info-val')[2];
   if (infoVal) {
-    infoVal.className = 'info-val ' + (val > 0 ? 'red' : 'green');
+    infoVal.className = 'info-val ' + (val >= 3000 ? 'red' : 'green');
     infoVal.textContent = val > 0 ? fmt(val) : '✓ Нет долга';
   }
   renderHeader();
