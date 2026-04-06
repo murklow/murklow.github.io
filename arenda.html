@@ -1007,9 +1007,18 @@ function renderCards() {
 
 function renderCard(apt) {
   const status = getStatus(apt);
-  const statusLabels = { overdue: '⚠ Просрочено', warning: '⏳ Скоро платёж', ok: '✓ В порядке' };
+  const paidThisMonth = isRentPaidThisMonth(apt);
   const rentDiff = rentDaysUntil(apt);
   const rentLabel = daysLabel(rentDiff);
+  const overdueRent = !paidThisMonth && rentDiff < 0;
+  const overdueUtil = apt.utility_debt >= 3000;
+
+  // Формируем бейджи
+  let badges = '';
+  if (overdueRent) badges += `<span class="status-badge overdue">⚠ Просрочено</span>`;
+  if (overdueUtil) badges += `<span class="status-badge overdue">💧 Долг по К/У</span>`;
+  if (!overdueRent && !overdueUtil && status === 'warning') badges = `<span class="status-badge warning">⏳ Скоро платёж</span>`;
+  if (!overdueRent && !overdueUtil && status === 'ok') badges = `<span class="status-badge ok">✓ В порядке</span>`;
 
   return `
   <div class="apt-card ${status}" data-id="${apt.id}" data-status="${status}">
@@ -1019,7 +1028,7 @@ function renderCard(apt) {
         <div class="apt-number">Квартира #${apt.id}</div>
         <div class="apt-address">${apt.address}</div>
       </div>
-      <span class="status-badge ${status}">${statusLabels[status]}</span>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">${badges}</div>
     </div>
     <div class="card-body">
 
@@ -1109,7 +1118,6 @@ function renderCard(apt) {
         ? `<button class="btn btn-unpaid" onclick="unmarkRentPaid(${apt.id})">↩ Не оплачена</button>`
         : `<button class="btn btn-paid" onclick="markRentPaid(${apt.id})">💸 Аренда оплачена</button>`
       }
-      <button class="btn btn-delete" onclick="deleteApt(${apt.id})" title="Удалить">🗑</button>
     </div>
   </div>`;
 }
