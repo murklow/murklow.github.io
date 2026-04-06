@@ -866,6 +866,7 @@ async function save() {
   try {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ data: apartments }),
     });
     const json = await res.json();
