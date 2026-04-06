@@ -294,7 +294,7 @@
     }
 
     // Check 2: Cash register = cashStart + cashPay + phone - rent - salary
-    const expectedCash = cashStart + cashPay + phone - rent - salary;
+    const expectedCash = cashStart + cashPay - rent - salary;
     const cashDiff = cashReg - expectedCash;
     const cashOk   = Math.abs(cashDiff) < 0.01;
     const canCashCheck = cashReg > 0 || rent > 0 || salary > 0 || cashPay > 0 || phone > 0;
@@ -302,13 +302,13 @@
     if (canCashCheck) {
       if (cashOk) {
         setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','ok',
-          `<span class="ok-text">Касса ${fmt(cashReg)} = Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} + Перевод ${fmt(phone)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}</span>`);
+          `<span class="ok-text">Касса ${fmt(cashReg)} = Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}</span>`);
       } else {
         const dir = cashDiff > 0
           ? `В кассе <b>излишек</b> на <span class="fail-text">${fmt(Math.abs(cashDiff))}</span> (ожидалось ${fmt(expectedCash)})`
           : `В кассе <b>недостача</b> на <span class="fail-text">${fmt(Math.abs(cashDiff))}</span> (ожидалось ${fmt(expectedCash)})`;
         setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','fail',
-          `${fmt(cashReg)} ≠ Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} + Перевод ${fmt(phone)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}<br>${dir}`);
+          `${fmt(cashReg)} ≠ Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}<br>${dir}`);
       }
     } else {
       setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','','');
@@ -354,7 +354,7 @@
     const sumPay       = card + cashPay + phone;
     const revDiff      = revenue - sumPay;
     const revOk        = Math.abs(revDiff) < 0.01;
-    const expectedCash = cashStart + cashPay + phone - rent - salary;
+    const expectedCash = cashStart + cashPay - rent - salary;
     const cashDiff     = cashReg - expectedCash;
     const cashOk       = Math.abs(cashDiff) < 0.01;
     const allOk        = revOk && cashOk;
