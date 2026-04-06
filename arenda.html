@@ -840,6 +840,7 @@ async function loadFromSheet() {
   showLoader(true);
   // Сначала восстанавливаем локальные данные (rent_paid_month, deposit)
   const localBackup = JSON.parse(localStorage.getItem('rm_local') || '{}');
+  const localPaid = JSON.parse(localStorage.getItem('rm_paid') || '{}');
   try {
     const res = await fetch(SCRIPT_URL);
     const json = await res.json();
@@ -849,7 +850,7 @@ async function loadFromSheet() {
         const backup = localBackup[apt.id] || {};
         return {
           ...apt,
-          rent_paid_month: apt.rent_paid_month || backup.rent_paid_month || '',
+          rent_paid_month: localPaid[apt.id] || apt.rent_paid_month || backup.rent_paid_month || '',
           deposit: apt.deposit || backup.deposit || 0,
         };
       });
@@ -1168,6 +1169,10 @@ function markRentPaid(id) {
   const apt = apartments.find(a => a.id === id);
   if (!apt) return;
   apt.rent_paid_month = currentYM();
+  // Сохраняем сразу в localStorage — надёжный резерв
+  const local = JSON.parse(localStorage.getItem('rm_paid') || '{}');
+  local[id] = currentYM();
+  localStorage.setItem('rm_paid', JSON.stringify(local));
   save();
   renderAll();
 }
@@ -1176,6 +1181,9 @@ function unmarkRentPaid(id) {
   const apt = apartments.find(a => a.id === id);
   if (!apt) return;
   apt.rent_paid_month = '';
+  const local = JSON.parse(localStorage.getItem('rm_paid') || '{}');
+  delete local[id];
+  localStorage.setItem('rm_paid', JSON.stringify(local));
   save();
   renderAll();
 }
