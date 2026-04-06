@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Перенос данных → Google Sheets</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14; --surface: #13161e; --card: #181c26; --border: #252a38;
+    --accent: #4f8aff; --accent2: #7c5cfc; --green: #2ddc8a;
+    --red: #ff4f6a; --text: #e8ecf4; --muted: #6b7390; --muted2: #9aa0b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Geologica', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; max-width: 560px; width: 100%; }
+  h1 { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+  p { font-size: 14px; color: var(--muted2); line-height: 1.6; margin-bottom: 20px; }
+  label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
+  input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-family: 'Geologica', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; margin-bottom: 20px; }
+  input:focus { border-color: rgba(79,138,255,0.5); }
+  .preview { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; max-height: 220px; overflow-y: auto; }
+  .apt-row { font-size: 12px; color: var(--muted2); padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+  .apt-row:last-child { border-bottom: none; }
+  .apt-addr { font-weight: 600; color: var(--text); flex: 1; }
+  .badge { background: rgba(79,138,255,0.12); color: var(--accent); border-radius: 6px; padding: 2px 8px; font-size: 11px; white-space: nowrap; }
+  .btn { width: 100%; border: none; border-radius: 12px; padding: 14px; font-family: 'Geologica', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+  .btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .status { border-radius: 12px; padding: 14px 18px; font-size: 14px; font-weight: 500; margin-top: 16px; display: none; }
+  .status.ok { background: rgba(45,220,138,0.1); border: 1px solid rgba(45,220,138,0.25); color: var(--green); }
+  .status.err { background: rgba(255,79,106,0.1); border: 1px solid rgba(255,79,106,0.25); color: var(--red); }
+  .status.loading { background: rgba(79,138,255,0.1); border: 1px solid rgba(79,138,255,0.2); color: var(--accent); }
+  .warn { background: rgba(245,200,66,0.08); border: 1px solid rgba(245,200,66,0.2); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #f5c842; margin-bottom: 20px; line-height: 1.5; }
+  .empty { text-align: center; color: var(--muted); padding: 20px 0; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Перенос данных</h1>
+  <p>Эта страница прочитает ваши квартиры из памяти браузера и перенесёт их в Google Sheets. Откройте её на том устройстве, где были сохранены данные.</p>
+
+  <div class="warn">⚠️ Откройте эту страницу в том же браузере, где вы раньше работали с дашбордом аренды</div>
+
+  <label>URL вашего Apps Script Web App</label>
+  <input type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." />
+
+  <div id="previewBlock" style="display:none;">
+    <label>Найдено квартир в браузере</label>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <div id="emptyBlock" style="display:none;" class="empty">
+    😕 В этом браузере нет сохранённых данных.<br>
+    <small style="color:var(--muted);font-size:12px;">Попробуйте открыть эту страницу в том браузере, где использовали дашборд.</small>
+  </div>
+
+  <button class="btn btn-primary" id="migrateBtn" onclick="migrate()" disabled>
+    Перенести данные в Google Sheets
+  </button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+  const DATA_KEY = 'rm_apts';
+
+  // Загрузить превью при открытии страницы
+  window.addEventListener('load', () => {
+    const raw = localStorage.getItem(DATA_KEY);
+    if (!raw) {
+      document.getElementById('emptyBlock').style.display = 'block';
+      return;
+    }
+    try {
+      const apts = JSON.parse(raw);
+      if (!apts || !apts.length) {
+        document.getElementById('emptyBlock').style.display = 'block';
+        return;
+      }
+      document.getElementById('previewBlock').style.display = 'block';
+      document.getElementById('preview').innerHTML = apts.map(a => `
+        <div class="apt-row">
+          <span class="apt-addr">${a.address || '—'}</span>
+          <span class="badge">${a.tenant ? a.tenant.split(' ')[0] : '—'}</span>
+        </div>`).join('');
+      document.getElementById('migrateBtn').disabled = false;
+    } catch(e) {
+      document.getElementById('emptyBlock').style.display = 'block';
+    }
+  });
+
+  async function migrate() {
+    const url = document.getElementById('scriptUrl').value.trim();
+    if (!url || !url.startsWith('https://script.google.com')) {
+      showStatus('err', '❌ Вставьте корректный URL Apps Script Web App');
+      return;
+    }
+
+    const raw = localStorage.getItem(DATA_KEY);
+    if (!raw) { showStatus('err', '❌ Данные не найдены в браузере'); return; }
+
+    const apts = JSON.parse(raw);
+    document.getElementById('migrateBtn').disabled = true;
+    showStatus('loading', '⟳ Отправка данных в Google Sheets...');
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ data: apts }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        showStatus('ok', `✓ Готово! ${apts.length} квартир успешно перенесены в Google Sheets. Теперь можно открыть дашборд на любом устройстве.`);
+      } else {
+        showStatus('err', '❌ Ошибка от сервера: ' + (json.error || 'неизвестна'));
+        document.getElementById('migrateBtn').disabled = false;
+      }
+    } catch(e) {
+      showStatus('err', '❌ Не удалось подключиться. Проверьте URL и доступ Web App (должен быть «Все»).');
+      document.getElementById('migrateBtn').disabled = false;
+    }
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('status');
+    el.className = 'status ' + type;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+</script>
+</body>
+</html>
