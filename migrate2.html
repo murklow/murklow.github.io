@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Перенос данных</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Geologica:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0d0f14; --card:#181c26; --border:#252a38; --accent:#4f8aff; --accent2:#7c5cfc; --green:#2ddc8a; --red:#ff4f6a; --text:#e8ecf4; --muted:#6b7390; --muted2:#9aa0b8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:'Geologica',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:40px; max-width:560px; width:100%; }
+  h1 { font-family:'Unbounded',sans-serif; font-size:20px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+  p { font-size:14px; color:var(--muted2); line-height:1.6; margin-bottom:20px; }
+  .apt-row { font-size:13px; color:var(--muted2); padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .apt-row:last-child { border-bottom:none; }
+  .apt-addr { font-weight:600; color:var(--text); }
+  .preview { background:#13161e; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px; }
+  .btn { width:100%; border:none; border-radius:12px; padding:14px; font-family:'Geologica',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:opacity 0.2s; }
+  .btn:hover:not(:disabled) { opacity:0.85; }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+  .status { border-radius:12px; padding:14px 18px; font-size:14px; font-weight:500; margin-top:16px; display:none; }
+  .status.ok { background:rgba(45,220,138,0.1); border:1px solid rgba(45,220,138,0.25); color:var(--green); }
+  .status.err { background:rgba(255,79,106,0.1); border:1px solid rgba(255,79,106,0.25); color:var(--red); }
+  .status.loading { background:rgba(79,138,255,0.1); border:1px solid rgba(79,138,255,0.2); color:var(--accent); }
+  .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin:20px auto; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Перенос данных</h1>
+  <p>Автоматически переносит все квартиры из старого Google Sheets в новый. Нажмите кнопку ниже.</p>
+
+  <div id="previewBlock" style="display:none;">
+    <p style="margin-bottom:10px;">Найдено квартир:</p>
+    <div class="preview" id="preview"></div>
+  </div>
+  <div class="spinner" id="spinner"></div>
+
+  <button class="btn btn-primary" id="migrateBtn" onclick="migrate()" disabled>Перенести в новый Google Sheets</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+  const OLD_URL = 'https://script.google.com/macros/s/AKfycbwdt-ZEvsxZOMgaVAHcQosJ6Nig1_Q3PLCS63D56EKEZ0iWFg67ut8i99J1csokj9Gpjg/exec';
+  const NEW_URL = 'https://script.google.com/macros/s/AKfycbyoR4yW9nnluVPkhM9ynZf--k8_ow9tRqOH3_ro_MM-kn0Ah_1E2fI2SM1cp_h1xJtkDw/exec';
+
+  let apartments = [];
+
+  window.addEventListener('load', async () => {
+    try {
+      const res = await fetch(OLD_URL);
+      const json = await res.json();
+      document.getElementById('spinner').style.display = 'none';
+      if (json.ok && json.data.length > 0) {
+        apartments = json.data;
+        document.getElementById('previewBlock').style.display = 'block';
+        document.getElementById('preview').innerHTML = apartments.map(a =>
+          `<div class="apt-row"><span class="apt-addr">${a.address || '—'}</span><span style="color:var(--muted);font-size:12px;">${a.tenant || ''}</span></div>`
+        ).join('');
+        document.getElementById('migrateBtn').disabled = false;
+      } else {
+        showStatus('err', '😕 В старой таблице нет данных или не удалось загрузить.');
+      }
+    } catch(e) {
+      document.getElementById('spinner').style.display = 'none';
+      showStatus('err', '❌ Не удалось подключиться к старому Apps Script: ' + e.message);
+    }
+  });
+
+  async function migrate() {
+    document.getElementById('migrateBtn').disabled = true;
+    showStatus('loading', '⟳ Отправка данных в новый Google Sheets...');
+    try {
+      const res = await fetch(NEW_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        body: JSON.stringify({ data: apartments }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        showStatus('ok', `✓ Готово! ${apartments.length} квартир успешно перенесены. Можете закрыть эту страницу и открыть дашборд.`);
+      } else {
+        showStatus('err', '❌ Ошибка: ' + (json.error || 'неизвестна'));
+        document.getElementById('migrateBtn').disabled = false;
+      }
+    } catch(e) {
+      showStatus('err', '❌ Ошибка подключения: ' + e.message);
+      document.getElementById('migrateBtn').disabled = false;
+    }
+  }
+
+  function showStatus(type, msg) {
+    const el = document.getElementById('status');
+    el.className = 'status ' + type;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+</script>
+</body>
+</html>
