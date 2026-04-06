@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор — Автоматические двери DEPER DSL-200L</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1e2334;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --accent: #4fffb0;
+    --accent2: #00c97a;
+    --accent-dim: rgba(79,255,176,0.12);
+    --text: #f0f2f8;
+    --muted: #7a8099;
+    --muted2: #a0a8c0;
+    --red: #ff5f6d;
+    --amber: #ffb020;
+    --font-head: 'Unbounded', sans-serif;
+    --font-body: 'Golos Text', sans-serif;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+  }
+
+  /* LEFT PANEL */
+  .left {
+    background: var(--surface);
+    padding: 2.5rem 2rem;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 2rem;
+    color: var(--text);
+  }
+
+  .page-title span {
+    color: var(--accent);
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  /* FORM ROWS */
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field-label {
+    font-size: 13px;
+    color: var(--muted2);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .field-label .badge {
+    font-size: 11px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  input[type="number"], select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding: 10px 12px;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  select option { background: var(--surface2); }
+
+  /* SLIDER */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .slider-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 52px;
+    text-align: right;
+  }
+
+  /* TOGGLE OPTIONS */
+  .toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toggle-btn {
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted2);
+    font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+
+  .toggle-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* RIGHT PANEL */
+  .right {
+    background: var(--bg);
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .result-header {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* PRICE DISPLAY */
+  .price-main {
+    background: linear-gradient(135deg, rgba(79,255,176,0.08) 0%, rgba(79,255,176,0.02) 100%);
+    border: 1px solid rgba(79,255,176,0.2);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .price-main .pl { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .price-main .pv { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: var(--accent); }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .metric-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+
+  .metric-box .ml { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .metric-box .mv { font-size: 18px; font-weight: 600; }
+  .metric-box .mv.green { color: var(--accent); }
+  .metric-box .mv.red { color: var(--red); }
+  .metric-box .mv.amber { color: var(--amber); }
+
+  /* BREAKDOWN */
+  .breakdown-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    flex: 1;
+  }
+
+  .breakdown-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .brow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted2);
+  }
+
+  .brow:last-child { border-bottom: none; font-weight: 600; font-size: 14px; color: var(--text); padding-top: 10px; }
+
+  .brow span:last-child { font-weight: 500; color: var(--text); }
+
+  /* MARGIN BAR */
+  .bar-wrap {
+    background: var(--border);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+    margin: 12px 0 4px;
+  }
+
+  .bar-inner {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.4s ease;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* COPY BUTTON */
+  .copy-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { background: rgba(79,255,176,0.2); }
+  .copy-btn:active { transform: scale(0.98); }
+
+  /* TABS CONTENT */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* RESPONSIVE */
+  @media (max-width: 860px) {
+    .page-grid { grid-template-columns: 1fr; }
+    .right { position: static; height: auto; }
+  }
+
+  /* RESET LINK */
+  .reset-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    text-decoration: underline;
+    padding: 0;
+    margin-top: 0.5rem;
+    display: inline-block;
+  }
+
+  .reset-btn:hover { color: var(--text); }
+
+  .tip {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.22s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header-title {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--muted2);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
+  .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .modal-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .modal-block-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-block-header .icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .icon-cost { background: rgba(255,95,109,0.15); }
+  .icon-client { background: rgba(79,255,176,0.12); }
+
+  .modal-block-header .btitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .modal-block-header .bsub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .mrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .mrow:last-child { border-bottom: none; }
+
+  .mrow .mkey { color: var(--muted2); }
+  .mrow .mval { font-weight: 500; color: var(--text); }
+  .mrow .mval.accent { color: var(--accent); }
+  .mrow .mval.amber { color: var(--amber); }
+  .mrow .mval.red { color: var(--red); }
+
+  .mrow.total {
+    background: rgba(255,255,255,0.03);
+    font-size: 14px;
+  }
+
+  .mrow.total .mkey { color: var(--text); font-weight: 600; }
+  .mrow.total .mval { font-family: var(--font-head); font-size: 15px; }
+
+  .divider-modal {
+    height: 1px;
+    background: var(--border);
+    margin: 0 1rem;
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 1.5rem 1.5rem;
+  }
+
+  .modal-btn {
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .modal-btn:hover { background: var(--bg); }
+
+  .modal-btn.primary {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .modal-btn.primary:hover { background: rgba(79,255,176,0.2); }
+</style>
+</head>
+<body>
+
+<div class="page-grid">
+
+  <!-- LEFT: INPUTS -->
+  <div class="left">
+    <div class="logo">DEPER DSL-200L · Калькулятор</div>
+    <div class="page-title">Расчёт стоимости<br><span>под ключ</span></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('order')">Заказ</button>
+      <button class="tab" onclick="switchTab('costs')">Себестоимость</button>
+      <button class="tab" onclick="switchTab('options')">Опции</button>
+    </div>
+
+    <!-- TAB: ORDER -->
+    <div class="tab-panel active" id="tab-order">
+
+      <div class="section">
+        <div class="section-label">Конструкция</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Тип двери</div>
+            <select id="type" onchange="calc()">
+              <option value="double">Двустворчатая (стандарт)</option>
+              <option value="single">Одностворчатая</option>
+              <option value="tele">Телескопическая (4 створки)</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Ширина проёма <span class="badge" id="w-badge">1.5 м</span></div>
+            <div class="slider-row">
+              <input type="range" id="width" min="0.8" max="4" step="0.1" value="1.5" oninput="calc()">
+              <span class="slider-val" id="wval">1.5 м</span>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label">Высота проёма <span class="badge" id="h-badge">2.1 м</span></div>
+            <div class="slider-row">
+              <input type="range" id="height" min="1.8" max="3.5" step="0.1" value="2.1" oninput="calc()">
+              <span class="slider-val" id="hval">2.1 м</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Ценообразование</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Ваша наценка на материалы</div>
+            <div class="slider-row">
+              <input type="range" id="margin" min="5" max="100" step="5" value="35" oninput="calc()">
+              <span class="slider-val" id="mval">35%</span>
+            </div>
+            <p class="tip">Процент сверх себестоимости. При 35% вы зарабатываете 26% от итоговой цены.</p>
+          </div>
+          <div class="field">
+            <div class="field-label">Скидка клиенту (от цены)</div>
+            <div class="slider-row">
+              <input type="range" id="discount" min="0" max="25" step="1" value="0" oninput="calc()">
+              <span class="slider-val" id="dval">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Дополнительные опции</div>
+        <div class="card">
+          <div class="toggles" id="opts-toggles">
+            <button class="toggle-btn active" data-key="curtain" onclick="toggle(this)">Тепловая завеса</button>
+            <button class="toggle-btn" data-key="lock" onclick="toggle(this)">Замок / доводчик</button>
+            <button class="toggle-btn" data-key="battery" onclick="toggle(this)">Аккумулятор (АКБ)</button>
+            <button class="toggle-btn" data-key="radar" onclick="toggle(this)">Доп. радар</button>
+            <button class="toggle-btn" data-key="survey" onclick="toggle(this)">Выезд на замер</button>
+            <button class="toggle-btn" data-key="warranty" onclick="toggle(this)">Расширенная гарантия</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: COSTS -->
+    <div class="tab-panel" id="tab-costs">
+      <div class="section">
+        <div class="section-label">Стоимость оборудования (₽)</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Привод DEPER DSL-200L — двустворчатая</div>
+            <input type="number" id="c-drive-double" value="62000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Привод DEPER DSL-200L — одностворчатая</div>
+            <input type="number" id="c-drive-single" value="48000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Привод DEPER DSL-200L — телескопическая</div>
+            <input type="number" id="c-drive-tele" value="95000" oninput="calc()">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Стоимость конструкции</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Профиль + стекло (₽ за м²)</div>
+            <input type="number" id="c-glass" value="6500" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Крепёж и расходники (₽, фикс.)</div>
+            <input type="number" id="c-misc" value="3500" oninput="calc()">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Стоимость монтажа (₽)</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Работа — двустворчатая</div>
+            <input type="number" id="c-work-double" value="15000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Работа — одностворчатая</div>
+            <input type="number" id="c-work-single" value="12000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Работа — телескопическая</div>
+            <input type="number" id="c-work-tele" value="22000" oninput="calc()">
+          </div>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetCosts()">Сбросить к стандартным значениям</button>
+    </div>
+
+    <!-- TAB: OPTIONS -->
+    <div class="tab-panel" id="tab-options">
+      <div class="section">
+        <div class="section-label">Себестоимость опций (₽)</div>
+        <div class="card">
+          <div class="field">
+            <div class="field-label">Тепловая завеса</div>
+            <input type="number" id="o-curtain" value="5000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Замок / доводчик</div>
+            <input type="number" id="o-lock" value="3500" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Аккумулятор (АКБ)</div>
+            <input type="number" id="o-battery" value="4000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Дополнительный радар</div>
+            <input type="number" id="o-radar" value="2500" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Выезд на замер</div>
+            <input type="number" id="o-survey" value="2000" oninput="calc()">
+          </div>
+          <div class="field">
+            <div class="field-label">Расширенная гарантия</div>
+            <input type="number" id="o-warranty" value="3000" oninput="calc()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div class="right">
+
+    <div class="result-header">Результат расчёта</div>
+
+    <div class="price-main">
+      <div class="pl">Итоговая цена клиенту</div>
+      <div class="pv" id="r-price">—</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div class="ml">Себестоимость</div>
+        <div class="mv" id="r-cost">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="ml">Ваша прибыль</div>
+        <div class="mv green" id="r-profit">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="ml">Цена до скидки</div>
+        <div class="mv amber" id="r-before-discount">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="ml">Маржинальность</div>
+        <div class="mv" id="r-margin-pct">—</div>
+      </div>
+    </div>
+
+    <div class="breakdown-card">
+      <div class="breakdown-title">Разбивка себестоимости</div>
+      <div class="brow"><span>Привод</span><span id="b-drive">—</span></div>
+      <div class="brow"><span>Профиль + стекло</span><span id="b-glass">—</span></div>
+      <div class="brow"><span>Крепёж / расходники</span><span id="b-misc">—</span></div>
+      <div class="brow"><span>Дополнительные опции</span><span id="b-opts">—</span></div>
+      <div class="brow"><span>Монтаж (работа)</span><span id="b-work">—</span></div>
+      <div class="brow"><span>Итого себестоимость</span><span id="b-total">—</span></div>
+
+      <div class="bar-wrap">
+        <div class="bar-inner" id="margin-bar" style="width:35%"></div>
+      </div>
+      <div class="bar-label">
+        <span>себестоимость</span>
+        <span id="bar-label-right">прибыль 35%</span>
+      </div>
+    </div>
+
+    <button class="copy-btn" onclick="openModal()">⬡ Показать полный расчёт</button>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-box">
+
+    <div class="modal-header">
+      <div class="modal-header-title">Полный расчёт</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- БЛОК 1: Себестоимость -->
+      <div class="modal-block">
+        <div class="modal-block-header">
+          <div class="icon icon-cost">🔒</div>
+          <div class="btitle">Себестоимость — только для вас</div>
+          <div class="bsub">конфиденциально</div>
+        </div>
+        <div class="mrow"><span class="mkey">Привод DEPER DSL-200L</span><span class="mval" id="m-drive">—</span></div>
+        <div class="mrow"><span class="mkey">Профиль + стекло (<span id="m-sqm">—</span> м²)</span><span class="mval" id="m-glass">—</span></div>
+        <div class="mrow"><span class="mkey">Крепёж и расходники</span><span class="mval" id="m-misc">—</span></div>
+        <div class="mrow" id="m-opts-row"><span class="mkey">Доп. опции: <span id="m-opts-list" style="color:var(--muted)">—</span></span><span class="mval" id="m-opts">—</span></div>
+        <div class="mrow"><span class="mkey">Монтаж (работа)</span><span class="mval" id="m-work">—</span></div>
+        <div class="divider-modal"></div>
+        <div class="mrow total"><span class="mkey">Итого себестоимость</span><span class="mval red" id="m-cost-total">—</span></div>
+        <div class="mrow"><span class="mkey">Наценка на себестоимость</span><span class="mval amber" id="m-markup">—</span></div>
+        <div class="mrow"><span class="mkey">Ваша прибыль</span><span class="mval accent" id="m-profit">—</span></div>
+        <div class="mrow"><span class="mkey">Маржинальность</span><span class="mval accent" id="m-margin-pct">—</span></div>
+      </div>
+
+      <!-- БЛОК 2: Для клиента -->
+      <div class="modal-block">
+        <div class="modal-block-header">
+          <div class="icon icon-client">📄</div>
+          <div class="btitle">Расчёт для клиента</div>
+          <div class="bsub">можно отправить</div>
+        </div>
+        <div class="mrow"><span class="mkey">Тип конструкции</span><span class="mval" id="m-type">—</span></div>
+        <div class="mrow"><span class="mkey">Размер проёма</span><span class="mval" id="m-size">—</span></div>
+        <div class="mrow" id="m-client-opts-row"><span class="mkey">Дополнительно</span><span class="mval" id="m-client-opts">—</span></div>
+        <div class="divider-modal"></div>
+        <div class="mrow" id="m-before-row"><span class="mkey">Цена без скидки</span><span class="mval amber" id="m-before">—</span></div>
+        <div class="mrow" id="m-disc-row"><span class="mkey">Ваша скидка</span><span class="mval amber" id="m-disc-val">—</span></div>
+        <div class="mrow total"><span class="mkey">Итоговая цена под ключ</span><span class="mval accent" id="m-price-total">—</span></div>
+        <div class="mrow"><span class="mkey">Срок установки</span><span class="mval">7–14 рабочих дней</span></div>
+        <div class="mrow"><span class="mkey">Гарантия</span><span class="mval">1 год на оборудование</span></div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn" id="btn-client" onclick="copyClientText()">📋 Для клиента</button>
+      <button class="modal-btn primary" id="btn-full" onclick="copyFullText()">📊 Полный расчёт</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const DEFAULTS = {
+    'c-drive-double': 62000,
+    'c-drive-single': 48000,
+    'c-drive-tele': 95000,
+    'c-glass': 6500,
+    'c-misc': 3500,
+    'c-work-double': 15000,
+    'c-work-single': 12000,
+    'c-work-tele': 22000,
+    'o-curtain': 5000,
+    'o-lock': 3500,
+    'o-battery': 4000,
+    'o-radar': 2500,
+    'o-survey': 2000,
+    'o-warranty': 3000
+  };
+
+  function v(id) {
+    const el = document.getElementById(id);
+    return el ? parseFloat(el.value) || 0 : 0;
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  function getOpts() {
+    let sum = 0;
+    document.querySelectorAll('.toggle-btn.active').forEach(btn => {
+      const key = btn.dataset.key;
+      sum += v('o-' + key);
+    });
+    return sum;
+  }
+
+  function calc() {
+    const type = document.getElementById('type').value;
+    const w = parseFloat(document.getElementById('width').value);
+    const h = parseFloat(document.getElementById('height').value);
+    const marginPct = parseFloat(document.getElementById('margin').value);
+    const discountPct = parseFloat(document.getElementById('discount').value);
+
+    document.getElementById('wval').textContent = w.toFixed(1) + ' м';
+    document.getElementById('hval').textContent = h.toFixed(1) + ' м';
+    document.getElementById('mval').textContent = marginPct + '%';
+    document.getElementById('dval').textContent = discountPct + '%';
+    document.getElementById('w-badge').textContent = w.toFixed(1) + ' м';
+    document.getElementById('h-badge').textContent = h.toFixed(1) + ' м';
+
+    const driveKey = 'c-drive-' + type;
+    const workKey = 'c-work-' + type;
+
+    const drive = v(driveKey);
+    const glass = Math.round(w * h * v('c-glass'));
+    const misc = v('c-misc');
+    const opts = getOpts();
+    const work = v(workKey);
+    const cost = drive + glass + misc + opts + work;
+
+    const priceBeforeDiscount = Math.round(cost * (1 + marginPct / 100));
+    const price = Math.round(priceBeforeDiscount * (1 - discountPct / 100));
+    const profit = price - cost;
+    const marginReal = cost > 0 ? Math.round(profit / price * 100) : 0;
+
+    document.getElementById('r-price').textContent = fmt(price);
+    document.getElementById('r-cost').textContent = fmt(cost);
+    document.getElementById('r-profit').textContent = fmt(profit);
+    document.getElementById('r-before-discount').textContent = fmt(priceBeforeDiscount);
+    document.getElementById('r-margin-pct').textContent = marginReal + '%';
+
+    const mpctEl = document.getElementById('r-margin-pct');
+    mpctEl.className = 'mv ' + (marginReal >= 25 ? 'green' : marginReal >= 15 ? 'amber' : 'red');
+
+    document.getElementById('b-drive').textContent = fmt(drive);
+    document.getElementById('b-glass').textContent = fmt(glass);
+    document.getElementById('b-misc').textContent = fmt(misc);
+    document.getElementById('b-opts').textContent = fmt(opts);
+    document.getElementById('b-work').textContent = fmt(work);
+    document.getElementById('b-total').textContent = fmt(cost);
+
+    const barW = Math.min(Math.max(marginReal, 0), 100);
+    document.getElementById('margin-bar').style.width = barW + '%';
+    document.getElementById('bar-label-right').textContent = 'прибыль ' + marginReal + '%';
+  }
+
+  function toggle(el) {
+    el.classList.toggle('active');
+    calc();
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function resetCosts() {
+    Object.entries(DEFAULTS).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    calc();
+  }
+
+  function openModal() {
+    const type = document.getElementById('type').value;
+    const typeMap = { double: 'Двустворчатая', single: 'Одностворчатая', tele: 'Телескопическая' };
+    const w = parseFloat(document.getElementById('width').value);
+    const h = parseFloat(document.getElementById('height').value);
+    const marginPct = parseFloat(document.getElementById('margin').value);
+    const discountPct = parseFloat(document.getElementById('discount').value);
+
+    let opts = [];
+    document.querySelectorAll('.toggle-btn.active').forEach(b => opts.push(b.textContent.trim()));
+
+    const drive  = parseFloat(document.getElementById('b-drive').textContent.replace(/[^\d]/g,''));
+    const glass  = parseFloat(document.getElementById('b-glass').textContent.replace(/[^\d]/g,''));
+    const misc   = parseFloat(document.getElementById('b-misc').textContent.replace(/[^\d]/g,''));
+    const optsV  = parseFloat(document.getElementById('b-opts').textContent.replace(/[^\d]/g,''));
+    const work   = parseFloat(document.getElementById('b-work').textContent.replace(/[^\d]/g,''));
+    const cost   = drive + glass + misc + optsV + work;
+    const before = Math.round(cost * (1 + marginPct / 100));
+    const price  = Math.round(before * (1 - discountPct / 100));
+    const profit = price - cost;
+    const marginReal = cost > 0 ? Math.round(profit / price * 100) : 0;
+
+    document.getElementById('m-drive').textContent      = fmt(drive);
+    document.getElementById('m-sqm').textContent        = (w * h).toFixed(2);
+    document.getElementById('m-glass').textContent      = fmt(glass);
+    document.getElementById('m-misc').textContent       = fmt(misc);
+    document.getElementById('m-opts-list').textContent  = opts.length ? opts.join(', ') : 'нет';
+    document.getElementById('m-opts').textContent       = fmt(optsV);
+    document.getElementById('m-opts-row').style.display = optsV > 0 ? 'flex' : 'none';
+    document.getElementById('m-work').textContent       = fmt(work);
+    document.getElementById('m-cost-total').textContent = fmt(cost);
+    document.getElementById('m-markup').textContent     = marginPct + '%';
+    document.getElementById('m-profit').textContent     = fmt(profit);
+    document.getElementById('m-margin-pct').textContent = marginReal + '%';
+
+    document.getElementById('m-type').textContent       = typeMap[type];
+    document.getElementById('m-size').textContent       = w.toFixed(1) + ' × ' + h.toFixed(1) + ' м';
+    document.getElementById('m-client-opts').textContent = opts.length ? opts.join(', ') : 'нет';
+    document.getElementById('m-client-opts-row').style.display = opts.length ? 'flex' : 'none';
+
+    const hasDisc = discountPct > 0;
+    document.getElementById('m-before-row').style.display = hasDisc ? 'flex' : 'none';
+    document.getElementById('m-disc-row').style.display   = hasDisc ? 'flex' : 'none';
+    document.getElementById('m-before').textContent       = fmt(before);
+    document.getElementById('m-disc-val').textContent     = discountPct + '%';
+    document.getElementById('m-price-total').textContent  = fmt(price);
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function closeModalOutside(e) {
+    if (e.target.id === 'modal') closeModal();
+  }
+
+  function flashBtn(id, text) {
+    const btn = document.getElementById(id);
+    const orig = btn.textContent;
+    btn.textContent = text;
+    setTimeout(() => btn.textContent = orig, 2200);
+  }
+
+  function copyClientText() {
+    const type   = document.getElementById('m-type').textContent;
+    const size   = document.getElementById('m-size').textContent;
+    const opts   = document.getElementById('m-client-opts').textContent;
+    const price  = document.getElementById('m-price-total').textContent;
+    const before = document.getElementById('m-before').textContent;
+    const disc   = document.getElementById('m-disc-val').textContent;
+    const hasDisc = document.getElementById('m-disc-row').style.display !== 'none';
+
+    const lines = [
+      '🚪 Расчёт — Автоматические раздвижные двери DEPER DSL-200L',
+      '──────────────────────────────────',
+      `Тип конструкции:  ${type}`,
+      `Размер проёма:    ${size}`,
+      opts !== 'нет' ? `Дополнительно:    ${opts}` : '',
+      '',
+      '──────────────────────────────────',
+      hasDisc ? `Цена без скидки:  ${before}` : '',
+      hasDisc ? `Скидка:           ${disc}` : '',
+      `💰 Цена под ключ: ${price}`,
+      '',
+      '✅ Срок установки: 7–14 рабочих дней',
+      '✅ Гарантия: 1 год на оборудование',
+      '✅ Выезд на замер — бесплатно'
+    ].filter(l => l !== '');
+
+    navigator.clipboard.writeText(lines.join('\n'))
+      .then(() => flashBtn('btn-client', '✓ Скопировано!'));
+  }
+
+  function copyFullText() {
+    const drive   = document.getElementById('m-drive').textContent;
+    const sqm     = document.getElementById('m-sqm').textContent;
+    const glass   = document.getElementById('m-glass').textContent;
+    const misc    = document.getElementById('m-misc').textContent;
+    const optsList= document.getElementById('m-opts-list').textContent;
+    const optsV   = document.getElementById('m-opts').textContent;
+    const work    = document.getElementById('m-work').textContent;
+    const costTot = document.getElementById('m-cost-total').textContent;
+    const markup  = document.getElementById('m-markup').textContent;
+    const profit  = document.getElementById('m-profit').textContent;
+    const marginP = document.getElementById('m-margin-pct').textContent;
+    const type    = document.getElementById('m-type').textContent;
+    const size    = document.getElementById('m-size').textContent;
+    const price   = document.getElementById('m-price-total').textContent;
+    const before  = document.getElementById('m-before').textContent;
+    const disc    = document.getElementById('m-disc-val').textContent;
+    const hasDisc = document.getElementById('m-disc-row').style.display !== 'none';
+    const hasOpts = document.getElementById('m-opts-row').style.display !== 'none';
+
+    const lines = [
+      '═══════════════════════════════════',
+      '  ПОЛНЫЙ РАСЧЁТ — DEPER DSL-200L',
+      '═══════════════════════════════════',
+      '',
+      '🔒 СЕБЕСТОИМОСТЬ (конфиденциально)',
+      '───────────────────────────────────',
+      `Привод DEPER DSL-200L:       ${drive}`,
+      `Профиль + стекло (${sqm} м²): ${glass}`,
+      `Крепёж и расходники:          ${misc}`,
+      hasOpts ? `Доп. опции (${optsList}): ${optsV}` : '',
+      `Монтаж (работа):              ${work}`,
+      `───────────────────────────────────`,
+      `ИТОГО себестоимость:          ${costTot}`,
+      `Наценка:                      ${markup}`,
+      `Ваша прибыль:                 ${profit}`,
+      `Маржинальность:               ${marginP}`,
+      '',
+      '📄 РАСЧЁТ ДЛЯ КЛИЕНТА',
+      '───────────────────────────────────',
+      `Тип конструкции:  ${type}`,
+      `Размер проёма:    ${size}`,
+      hasDisc ? `Цена без скидки:  ${before}` : '',
+      hasDisc ? `Скидка клиенту:   ${disc}` : '',
+      `💰 Цена под ключ: ${price}`,
+      `Срок установки:   7–14 рабочих дней`,
+      `Гарантия:         1 год на оборудование`
+    ].filter(l => l !== '');
+
+    navigator.clipboard.writeText(lines.join('\n'))
+      .then(() => flashBtn('btn-full', '✓ Скопировано!'));
+  }
+
+  calc();
+</script>
+</body>
+</html>
