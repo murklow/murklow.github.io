@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ru">"ru"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поставщики</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Playfair+Display:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #222633;
+    --border: #2a2e3d;
+    --accent: #e8a84c;
+    --accent-dim: #e8a84c22;
+    --accent-glow: #e8a84c44;
+    --text: #e8e6e1;
+    --text-dim: #8a8994;
+    --danger: #e85c5c;
+    --danger-dim: #e85c5c22;
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-weight: 300;
+  }
+
+  .top-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    width: 18px;
+    height: 18px;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .search-box input::placeholder { color: var(--text-dim); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px var(--accent-glow);
+  }
+
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+
+  .btn-danger {
+    background: var(--danger-dim);
+    color: var(--danger);
+    border: 1px solid transparent;
+  }
+
+  .btn-danger:hover { border-color: var(--danger); }
+
+  .group {
+    margin-bottom: 40px;
+    animation: fadeIn 0.35s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .group-color {
+    width: 6px;
+    height: 32px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .group-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    flex: 1;
+  }
+
+  .group-count {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .group-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .group-actions button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text-dim);
+    transition: all 0.15s;
+  }
+
+  .group-actions button:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
+
+  .group-actions button.add:hover {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--accent);
+  }
+
+  .group-actions button.del:hover {
+    color: var(--danger);
+    background: var(--danger-dim);
+    border-color: transparent;
+  }
+
+  .group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.25s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    animation: cardIn 0.3s ease both;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 24px var(--accent-dim);
+    transform: translateY(-2px);
+  }
+
+  .card-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .card-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 0.83rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    flex: 1;
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.83rem;
+    font-weight: 500;
+    padding: 7px 12px;
+    background: var(--accent-dim);
+    border-radius: 8px;
+    transition: all 0.2s;
+    word-break: break-all;
+  }
+
+  .card-link:hover { background: var(--accent-glow); }
+  .card-link svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  .card-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .card:hover .card-actions { opacity: 1; }
+
+  .card-actions button {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg);
+    color: var(--text-dim);
+  }
+
+  .card-actions button:hover { color: var(--text); background: var(--surface-hover); }
+  .card-actions button.delete-btn:hover { color: var(--danger); background: var(--danger-dim); }
+
+  .empty-all {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-all svg { width: 56px; height: 56px; margin-bottom: 16px; opacity: 0.25; }
+  .empty-all h3 { font-size: 1.15rem; color: var(--text); margin-bottom: 8px; font-weight: 500; }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s;
+    padding: 20px;
+  }
+
+  .overlay.active { opacity: 1; visibility: visible; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 32px;
+    width: 100%;
+    max-width: 460px;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.3s;
+  }
+
+  .overlay.active .modal { transform: translateY(0) scale(1); }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 24px;
+  }
+
+  .field { margin-bottom: 16px; }
+
+  .field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .field input, .field textarea {
+    width: 100%;
+    padding: 11px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .field input:focus, .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .field input::placeholder, .field textarea::placeholder { color: #555; }
+  .field textarea { resize: vertical; min-height: 65px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  .color-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .color-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot.active { border-color: var(--text); transform: scale(1.15); }
+
+  @media (max-width: 500px) {
+    header h1 { font-size: 1.8rem; }
+    .container { padding: 24px 16px 60px; }
+    .group-grid { grid-template-columns: 1fr; }
+    .top-controls { flex-direction: column; }
+    .group-header { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Мои <span>Поставщики</span></h1>
+    <p>Быстрый доступ к сайтам и контактам</p>
+  </header>
+
+  <div class="top-controls">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input type="text" id="searchInput" placeholder="Найти поставщика…" oninput="render()">
+    </div>
+    <button class="btn btn-ghost" onclick="openGroupModal()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+      Новая группа
+    </button>
+    <button class="btn btn-ghost" onclick="exportFile()" title="Скачать файл со всеми данными для другого устройства">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Сохранить файл
+    </button>
+  </div>
+
+  <div id="content"><div class="group" style="animation-delay:0s"><div class="group-header">
+      <div class="group-color" style="background:#e87c5c"></div>
+      <div class="group-title">Электронки  не чз</div>
+      <div class="group-count">4</div>
+      <div class="group-actions">
+        <button class="add" title="Добавить поставщика" onclick="openSupplierModal('mnx3nc00uk4q')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+        <button title="Редактировать группу" onclick="editGroup('mnx3nc00uk4q')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+        <button class="del" title="Удалить группу" onclick="deleteGroup('mnx3nc00uk4q')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div><div class="group-grid">
+        <div class="card" style="animation-delay:0s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3npg81f73')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3npg81f73')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#e87c5c21;color:#e87c5c">GR</div>
+          <div class="card-name">green river не чз</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/qjjjAVr9cmr0" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.04s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3pjcy6ko6')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3pjcy6ko6')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#e87c5c21;color:#e87c5c">ФН</div>
+          <div class="card-name">Филипп не чз</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/sv5QZKQ2FFjK/catalog" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.08s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3pwah0kc5')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3pwah0kc5')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#e87c5c21;color:#e87c5c">ВТ</div>
+          <div class="card-name">Вова тортуга</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/HrG0oNmQEhm1" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.12s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx405m0z7ap')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx405m0z7ap')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#e87c5c21;color:#e87c5c">СА</div>
+          <div class="card-name">Самвел</div>
+          <div class="card-desc">Эксель по запросу</div>
+          <span style="font-size:0.8rem;color:var(--text-dim)">Нет ссылки</span>
+        </div></div></div><div class="group" style="animation-delay:0.06s"><div class="group-header">
+      <div class="group-color" style="background:#5c8ce8"></div>
+      <div class="group-title">Электронки ЧЗ</div>
+      <div class="group-count">3</div>
+      <div class="group-actions">
+        <button class="add" title="Добавить поставщика" onclick="openSupplierModal('mnx3qp2h6bq8')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+        <button title="Редактировать группу" onclick="editGroup('mnx3qp2h6bq8')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+        <button class="del" title="Удалить группу" onclick="deleteGroup('mnx3qp2h6bq8')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div><div class="group-grid">
+        <div class="card" style="animation-delay:0s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3r7admwhn')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3r7admwhn')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#5c8ce821;color:#5c8ce8">СИ</div>
+          <div class="card-name">Степан интерлайн</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/h07UdN6ZEX8z" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.04s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3rjvr0l4f')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3rjvr0l4f')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#5c8ce821;color:#5c8ce8">GR</div>
+          <div class="card-name">GREEN RIVER ЧЗ</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/uWnRjYNSAtkk" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.08s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3sux7byg5')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3sux7byg5')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#5c8ce821;color:#5c8ce8">ФЧ</div>
+          <div class="card-name">Филипп ЧЗ</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/6x0o4THAtB8z" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div></div></div><div class="group" style="animation-delay:0.12s"><div class="group-header">
+      <div class="group-color" style="background:#8ce85c"></div>
+      <div class="group-title">ТАБАК</div>
+      <div class="group-count">4</div>
+      <div class="group-actions">
+        <button class="add" title="Добавить поставщика" onclick="openSupplierModal('mnx3wwvhta0n')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+        <button title="Редактировать группу" onclick="editGroup('mnx3wwvhta0n')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+        <button class="del" title="Удалить группу" onclick="deleteGroup('mnx3wwvhta0n')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div><div class="group-grid">
+        <div class="card" style="animation-delay:0s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3xgej63ck')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3xgej63ck')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#8ce85c21;color:#8ce85c">ТД</div>
+          <div class="card-name">ТАБАЧНЫЙ ДЖО</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://joekrasnodar.mag1c.ru/applications/Store/?state=invite-182c2e27-12f0-11f1-9c05-f2ffd6eb1057" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             joekrasnodar.mag1c.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.04s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3xyjjaa55')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3xyjjaa55')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#8ce85c21;color:#8ce85c">СО</div>
+          <div class="card-name">СЕРЕГА ОПТ</div>
+          <div class="card-desc">—</div>
+          <a class="card-link" href="https://b2b.moysklad.ru/public/z5xQK1t3ZRm9/catalog" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+             b2b.moysklad.ru</a>
+        </div>
+        <div class="card" style="animation-delay:0.08s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3zjdir1yb')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3zjdir1yb')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#8ce85c21;color:#8ce85c">SХ</div>
+          <div class="card-name">SALES ХАБ</div>
+          <div class="card-desc">Эксель по запросу</div>
+          <span style="font-size:0.8rem;color:var(--text-dim)">Нет ссылки</span>
+        </div>
+        <div class="card" style="animation-delay:0.12s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('mnx3zu8xq7fv')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('mnx3zu8xq7fv')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:#8ce85c21;color:#8ce85c">DA</div>
+          <div class="card-name">DARKSIDE</div>
+          <div class="card-desc">ЭКСЕЛЬ ПО ЗАПРОСУ</div>
+          <span style="font-size:0.8rem;color:var(--text-dim)">Нет ссылки</span>
+        </div></div></div></div>
+</div>
+
+<!-- Group Modal -->
+<div class="overlay" id="groupOverlay" onclick="closeOnOverlay(event,'groupOverlay')">
+  <div class="modal">
+    <h2 id="groupModalTitle">Новая группа</h2>
+    <div class="field">
+      <label>Название группы *</label>
+      <input type="text" id="gName" placeholder="Например: Упаковка">
+    </div>
+    <div class="field">
+      <label>Цвет</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <input type="hidden" id="gId">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('groupOverlay')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Modal -->
+<div class="overlay" id="supplierOverlay" onclick="closeOnOverlay(event,'supplierOverlay')">
+  <div class="modal">
+    <h2 id="supplierModalTitle">Новый поставщик</h2>
+    <div class="field">
+      <label>Название *</label>
+      <input type="text" id="fName" placeholder="ООО «Ромашка»">
+    </div>
+    <div class="field">
+      <label>Ссылка</label>
+      <input type="url" id="fUrl" placeholder="https://example.com">
+    </div>
+    <div class="field">
+      <label>Описание / кто это</label>
+      <textarea id="fDesc" placeholder="Поставщик упаковки, контакт — Иван"></textarea>
+    </div>
+    <input type="hidden" id="fId">
+    <input type="hidden" id="fGroupId">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('supplierOverlay')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveSupplier()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GK = 'supplier_groups';
+const SK = 'supplier_items';
+const PALETTE = ['#e8a84c','#5c8ce8','#e85c8c','#5ce8a8','#c85ce8','#e8c85c','#5ce8e8','#e87c5c','#8ce85c','#e85ccc'];
+let selectedColor = PALETTE[0];
+
+// --- Embedded data (filled automatically when you click "Сохранить файл") ---
+const EMBEDDED_GROUPS = [{"id":"mnx3nc00uk4q","name":"Электронки  не чз","color":"#e87c5c"},{"id":"mnx3qp2h6bq8","name":"Электронки ЧЗ","color":"#5c8ce8"},{"id":"mnx3wwvhta0n","name":"ТАБАК","color":"#8ce85c"}];
+const EMBEDDED_ITEMS = [{"id":"mnx3npg81f73","groupId":"mnx3nc00uk4q","name":"green river не чз","url":"https://b2b.moysklad.ru/public/qjjjAVr9cmr0","desc":""},{"id":"mnx3pjcy6ko6","groupId":"mnx3nc00uk4q","name":"Филипп не чз","url":"https://b2b.moysklad.ru/public/sv5QZKQ2FFjK/catalog","desc":""},{"id":"mnx3pwah0kc5","groupId":"mnx3nc00uk4q","name":"Вова тортуга","url":"https://b2b.moysklad.ru/public/HrG0oNmQEhm1","desc":""},{"id":"mnx3r7admwhn","groupId":"mnx3qp2h6bq8","name":"Степан интерлайн","url":"https://b2b.moysklad.ru/public/h07UdN6ZEX8z","desc":""},{"id":"mnx3rjvr0l4f","groupId":"mnx3qp2h6bq8","name":"GREEN RIVER ЧЗ","url":"https://b2b.moysklad.ru/public/uWnRjYNSAtkk","desc":""},{"id":"mnx3sux7byg5","groupId":"mnx3qp2h6bq8","name":"Филипп ЧЗ","url":"https://b2b.moysklad.ru/public/6x0o4THAtB8z","desc":""},{"id":"mnx3xgej63ck","groupId":"mnx3wwvhta0n","name":"ТАБАЧНЫЙ ДЖО","url":"https://joekrasnodar.mag1c.ru/applications/Store/?state=invite-182c2e27-12f0-11f1-9c05-f2ffd6eb1057","desc":""},{"id":"mnx3xyjjaa55","groupId":"mnx3wwvhta0n","name":"СЕРЕГА ОПТ","url":"https://b2b.moysklad.ru/public/z5xQK1t3ZRm9/catalog","desc":""},{"id":"mnx3zjdir1yb","groupId":"mnx3wwvhta0n","name":"SALES ХАБ","url":"","desc":"Эксель по запросу"},{"id":"mnx3zu8xq7fv","groupId":"mnx3wwvhta0n","name":"DARKSIDE","url":"","desc":"ЭКСЕЛЬ ПО ЗАПРОСУ"},{"id":"mnx405m0z7ap","groupId":"mnx3nc00uk4q","name":"Самвел","url":"","desc":"Эксель по запросу"}];
+// --- End embedded data ---
+
+function loadG() {
+  try {
+    const ls = JSON.parse(localStorage.getItem(GK));
+    if (ls && ls.length) return ls;
+  } catch {}
+  if (EMBEDDED_GROUPS.length) { localStorage.setItem(GK, JSON.stringify(EMBEDDED_GROUPS)); return [...EMBEDDED_GROUPS]; }
+  return [];
+}
+function saveG(d) { localStorage.setItem(GK, JSON.stringify(d)); }
+
+function loadS() {
+  try {
+    const ls = JSON.parse(localStorage.getItem(SK));
+    if (ls && ls.length) return ls;
+  } catch {}
+  if (EMBEDDED_ITEMS.length) { localStorage.setItem(SK, JSON.stringify(EMBEDDED_ITEMS)); return [...EMBEDDED_ITEMS]; }
+  return [];
+}
+function saveS(d) { localStorage.setItem(SK, JSON.stringify(d)); }
+
+function exportFile() {
+  const groups = loadG();
+  const items = loadS();
+  // Get current page HTML and inject data
+  let html = document.documentElement.outerHTML;
+  html = '<!DOCTYPE html>\n<html lang="ru">' + html.slice(html.indexOf('<html') + html.match(/<html[^>]*>/)[0].length - 5);
+  // Replace embedded data placeholders
+  html = html.replace(
+    /const EMBEDDED_GROUPS = \[.*?\];/s,
+    'const EMBEDDED_GROUPS = ' + JSON.stringify(groups) + ';'
+  );
+  html = html.replace(
+    /const EMBEDDED_ITEMS = \[.*?\];/s,
+    'const EMBEDDED_ITEMS = ' + JSON.stringify(items) + ';'
+  );
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'suppliers.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+function getInitials(name) {
+  const p = name.trim().split(/\s+/);
+  return p.length >= 2 ? (p[0][0]+p[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
+}
+
+function fmtUrl(url) {
+  if (!url) return '';
+  try { return new URL(url).hostname.replace('www.',''); } catch { return url; }
+}
+
+function ensureProto(url) {
+  if (!url) return '';
+  return /^https?:\/\//i.test(url) ? url : 'https://'+url;
+}
+
+function dimColor(hex, a) {
+  return hex + Math.round(a*255).toString(16).padStart(2,'0');
+}
+
+function render() {
+  const groups = loadG();
+  const suppliers = loadS();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const box = document.getElementById('content');
+
+  if (groups.length === 0) {
+    box.innerHTML = `
+      <div class="empty-all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <h3>Создайте первую группу</h3>
+        <p>Нажмите «Новая группа», чтобы начать</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  groups.forEach((g, gi) => {
+    const items = suppliers.filter(s => s.groupId === g.id);
+    const filtered = items.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      (s.desc||'').toLowerCase().includes(q) ||
+      (s.url||'').toLowerCase().includes(q)
+    );
+    if (q && filtered.length === 0) return;
+    const c = g.color || PALETTE[0];
+
+    html += `<div class="group" style="animation-delay:${gi*0.06}s">`;
+    html += `<div class="group-header">
+      <div class="group-color" style="background:${c}"></div>
+      <div class="group-title">${esc(g.name)}</div>
+      <div class="group-count">${items.length}</div>
+      <div class="group-actions">
+        <button class="add" title="Добавить поставщика" onclick="openSupplierModal('${g.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button title="Редактировать группу" onclick="editGroup('${g.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="del" title="Удалить группу" onclick="deleteGroup('${g.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+    html += `<div class="group-grid">`;
+
+    const list = q ? filtered : items;
+    list.forEach((s, si) => {
+      const fg = c;
+      const bg = dimColor(c, 0.13);
+      const linkHtml = s.url
+        ? `<a class="card-link" href="${ensureProto(s.url)}" target="_blank" rel="noopener">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+             ${fmtUrl(s.url)}</a>`
+        : '<span style="font-size:0.8rem;color:var(--text-dim)">Нет ссылки</span>';
+
+      html += `
+        <div class="card" style="animation-delay:${si*0.04}s">
+          <div class="card-actions">
+            <button title="Редактировать" onclick="editSupplier('${s.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="delete-btn" title="Удалить" onclick="deleteSupplier('${s.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+          <div class="card-avatar" style="background:${bg};color:${fg}">${getInitials(s.name)}</div>
+          <div class="card-name">${esc(s.name)}</div>
+          <div class="card-desc">${esc(s.desc || '—')}</div>
+          ${linkHtml}
+        </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  box.innerHTML = html || `<div class="empty-all"><h3>Ничего не найдено</h3></div>`;
+}
+
+function renderColorPicker(sel) {
+  selectedColor = sel || PALETTE[0];
+  document.getElementById('colorRow').innerHTML = PALETTE.map(c =>
+    `<div class="color-dot ${c===selectedColor?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+  ).join('');
+}
+
+function pickColor(c) { renderColorPicker(c); }
+
+function openGroupModal(editing) {
+  document.getElementById('groupModalTitle').textContent = editing ? 'Редактировать группу' : 'Новая группа';
+  if (!editing) {
+    document.getElementById('gName').value = '';
+    document.getElementById('gId').value = '';
+  }
+  renderColorPicker(editing ? selectedColor : PALETTE[Math.floor(Math.random()*PALETTE.length)]);
+  document.getElementById('groupOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('gName').focus(), 200);
+}
+
+function saveGroup() {
+  const name = document.getElementById('gName').value.trim();
+  if (!name) { document.getElementById('gName').focus(); return; }
+  const id = document.getElementById('gId').value;
+  const groups = loadG();
+  if (id) {
+    const i = groups.findIndex(g => g.id === id);
+    if (i >= 0) groups[i] = { ...groups[i], name, color: selectedColor };
+  } else {
+    groups.push({ id: uid(), name, color: selectedColor });
+  }
+  saveG(groups);
+  closeModal('groupOverlay');
+  render();
+}
+
+function editGroup(id) {
+  const g = loadG().find(x => x.id === id);
+  if (!g) return;
+  document.getElementById('gName').value = g.name;
+  document.getElementById('gId').value = g.id;
+  selectedColor = g.color || PALETTE[0];
+  openGroupModal(true);
+}
+
+function deleteGroup(id) {
+  if (!confirm('Удалить группу и всех её поставщиков?')) return;
+  saveG(loadG().filter(g => g.id !== id));
+  saveS(loadS().filter(s => s.groupId !== id));
+  render();
+}
+
+function openSupplierModal(groupId, editing) {
+  document.getElementById('supplierModalTitle').textContent = editing ? 'Редактировать' : 'Новый поставщик';
+  if (!editing) {
+    document.getElementById('fName').value = '';
+    document.getElementById('fUrl').value = '';
+    document.getElementById('fDesc').value = '';
+    document.getElementById('fId').value = '';
+    document.getElementById('fGroupId').value = groupId;
+  }
+  document.getElementById('supplierOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('fName').focus(), 200);
+}
+
+function saveSupplier() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { document.getElementById('fName').focus(); return; }
+  const url = document.getElementById('fUrl').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const id = document.getElementById('fId').value;
+  const groupId = document.getElementById('fGroupId').value;
+  const data = loadS();
+  if (id) {
+    const i = data.findIndex(s => s.id === id);
+    if (i >= 0) data[i] = { ...data[i], name, url, desc };
+  } else {
+    data.push({ id: uid(), groupId, name, url, desc });
+  }
+  saveS(data);
+  closeModal('supplierOverlay');
+  render();
+}
+
+function editSupplier(id) {
+  const s = loadS().find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('fName').value = s.name;
+  document.getElementById('fUrl').value = s.url || '';
+  document.getElementById('fDesc').value = s.desc || '';
+  document.getElementById('fId').value = s.id;
+  document.getElementById('fGroupId').value = s.groupId;
+  openSupplierModal(s.groupId, true);
+}
+
+function deleteSupplier(id) {
+  if (!confirm('Удалить поставщика?')) return;
+  saveS(loadS().filter(s => s.id !== id));
+  render();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeOnOverlay(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal('groupOverlay'); closeModal('supplierOverlay'); }
+});
+
+render();
+</script>
+
+
+</body></html>
