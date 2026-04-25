@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ежедневный отчёт</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Golos+Text:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --amber: #22c55e; --amber-mid: #86efac; --amber-dark: #14532d;
+    --bg: #000000; --bg2: #0a0f0a; --bg3: #111811;
+    --border: rgba(34,197,94,0.2); --border-hover: rgba(34,197,94,0.5);
+    --text: #e8f5e8; --text-muted: #6b9e7a; --text-dim: #2d5c3a;
+    --green: #22c55e; --green-bg: rgba(34,197,94,0.1); --green-border: rgba(34,197,94,0.35);
+    --red: #ef4444; --red-bg: rgba(239,68,68,0.1); --red-border: rgba(239,68,68,0.35);
+    --radius: 12px; --radius-sm: 8px;
+  }
+  body { font-family: 'Golos Text', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .page { max-width: 520px; margin: 0 auto; padding: 24px 16px 56px; }
+
+  .header { text-align: center; padding: 32px 0 28px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .logo-mark { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 14px; background: var(--bg3); border: 1px solid var(--border); margin-bottom: 14px; }
+  .logo-mark svg { width: 28px; height: 28px; }
+  h1 { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+  .header-date { font-size: 13px; color: var(--text-muted); letter-spacing: 0.04em; }
+
+  .section { margin-bottom: 8px; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; padding-left: 2px; }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .hint { font-size: 12px; color: var(--text-dim); padding: 0 2px; line-height: 1.6; margin-bottom: 14px; }
+
+  .field { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 8px; transition: border-color 0.15s; position: relative; }
+  .field:focus-within { border-color: var(--border-hover); background: var(--bg3); }
+  .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.02em; }
+  .field input { display: block; width: 100%; background: none; border: none; outline: none; font-family: 'Golos Text', sans-serif; font-size: 17px; font-weight: 500; color: var(--text); padding: 0; }
+  .field input::placeholder { color: var(--text-dim); font-weight: 400; }
+  .field .suffix { position: absolute; right: 16px; bottom: 14px; font-size: 15px; color: var(--text-dim); }
+
+  .verify-panel { border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px; display: none; }
+  .verify-panel.visible { display: block; }
+  .verify-header { background: var(--bg3); padding: 11px 16px; border-bottom: 1px solid var(--border); }
+  .verify-header span { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+  .verify-block { padding: 14px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; }
+  .verify-block:last-child { border-bottom: none; }
+  .verify-block.ok { background: var(--green-bg); }
+  .verify-block.fail { background: var(--red-bg); }
+
+  .verify-row { display: flex; justify-content: space-between; align-items: center; }
+  .verify-title { font-size: 13px; color: var(--text-muted); }
+  .verify-badge { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .badge-ok   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .badge-fail { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-border);   }
+  .badge-wait { background: var(--bg3);      color: var(--text-dim); border: 1px solid var(--border);    }
+
+  .verify-detail { margin-top: 8px; font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+  .ok-text   { color: var(--green); }
+  .fail-text { color: var(--red); font-weight: 500; }
+
+  .summary-banner { border-radius: var(--radius); padding: 14px 18px; margin-bottom: 20px; display: none; }
+  .summary-banner.visible { display: flex; align-items: center; gap: 14px; }
+  .summary-banner.all-ok  { background: var(--green-bg); border: 1px solid var(--green-border); }
+  .summary-banner.has-fail { background: var(--red-bg);  border: 1px solid var(--red-border);   }
+  .banner-icon { font-size: 24px; flex-shrink: 0; line-height: 1; }
+  .banner-text { font-size: 14px; font-weight: 500; }
+  .all-ok  .banner-text { color: var(--green); }
+  .has-fail .banner-text { color: var(--red); }
+  .banner-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+  .btn-done { display: block; width: 100%; padding: 18px; background: var(--amber); color: #000000; border: none; border-radius: var(--radius); font-family: 'Unbounded', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .btn-done:hover { opacity: 0.9; }
+  .btn-done:active { transform: scale(0.98); opacity: 0.85; }
+  .btn-done:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 12px; cursor: pointer; transition: border-color 0.15s; }
+  .checkbox-row:hover { border-color: var(--border-hover); }
+  .checkbox-row input[type=checkbox] { display: none; }
+  .check-box { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border-hover); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s; }
+  .checkbox-row input:checked ~ .check-box { background: var(--green); border-color: var(--green); }
+  .checkbox-row input:checked ~ .check-box::after { content: ""; display: block; width: 6px; height: 10px; border: 2px solid #000; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px,-1px); }
+  .check-label { font-size: 14px; color: var(--text-muted); transition: color 0.15s; }
+  .checkbox-row:has(input:checked) .check-label { color: var(--text); }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; font-size: 14px; text-align: center; min-width: 260px; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 100; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { color: #22c55e; border-color: rgba(34,197,94,0.4); }
+  .toast.error   { color: #f87171; border-color: rgba(239,68,68,0.4); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="logo-mark">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="13" width="20" height="4" rx="2" fill="#22c55e"/>
+        <rect x="8" y="10" width="3" height="3" rx="1" fill="#86efac"/>
+        <rect x="13" y="10" width="3" height="3" rx="1" fill="#86efac"/>
+        <rect x="18" y="10" width="3" height="3" rx="1" fill="#86efac"/>
+        <rect x="6" y="17" width="16" height="2" rx="1" fill="#14532d"/>
+      </svg>
+    </div>
+    <h1>Ежедневный отчёт</h1>
+    <div class="header-date" id="currentDate"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Продавец</div>
+    <div class="field">
+      <label>Имя</label>
+      <input type="text" id="f_name" placeholder="Введите имя"/>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">Начало смены</div>
+    <div class="field">
+      <label>Наличные в кассе на начало смены</label>
+      <input type="number" id="f_cash_start" placeholder="0" oninput="saveCashStart(); recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">Финансы за день</div>
+    <div class="field">
+      <label>Выручка за день</label>
+      <input type="number" id="f_revenue" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+    <div class="field">
+      <label>Безналичная оплата</label>
+      <input type="number" id="f_card" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+    <div class="field">
+      <label>Наличная оплата</label>
+      <input type="number" id="f_cash_payment" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+    <div class="field">
+      <label>Перевод на карту через телефон</label>
+      <input type="number" id="f_phone_transfer" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">Расходы</div>
+    <div class="field">
+      <label>Отложено в аренду</label>
+      <input type="number" id="f_rent" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+    <div class="field">
+      <label>Всего в аренде</label>
+      <input type="number" id="f_rent_total" placeholder="0"/>
+      <span class="suffix">₽</span>
+    </div>
+    <div class="field">
+      <label>Зарплата</label>
+      <input type="number" id="f_salary" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">Касса</div>
+    <div class="hint">Наличные в кассе после того, как отложили аренду и забрали зарплату</div>
+    <div class="field">
+      <label>Наличные в кассе (остаток)</label>
+      <input type="number" id="f_cash_register" placeholder="0" oninput="recalc()"/>
+      <span class="suffix">₽</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="verify-panel" id="verifyPanel">
+    <div class="verify-header"><span>Проверка данных</span></div>
+    <div class="verify-block" id="vb_revenue">
+      <div class="verify-row">
+        <span class="verify-title">Выручка сходится?</span>
+        <span class="verify-badge badge-wait" id="vbadge_revenue">—</span>
+      </div>
+      <div class="verify-detail" id="vdetail_revenue"></div>
+    </div>
+    <div class="verify-block" id="vb_cash">
+      <div class="verify-row">
+        <span class="verify-title">Касса сходится?</span>
+        <span class="verify-badge badge-wait" id="vbadge_cash">—</span>
+      </div>
+      <div class="verify-detail" id="vdetail_cash"></div>
+    </div>
+  </div>
+
+  <div class="summary-banner" id="summaryBanner">
+    <div class="banner-icon" id="bannerIcon"></div>
+    <div>
+      <div class="banner-text" id="bannerText"></div>
+      <div class="banner-sub"  id="bannerSub"></div>
+    </div>
+  </div>
+
+  <label class="checkbox-row" id="checkboxRow">
+    <input type="checkbox" id="chk_clean" onchange="updateBtn()"/>
+    <span class="check-box" id="checkBox"></span>
+    <span class="check-label">Товар расставлен и полы вымыты</span>
+  </label>
+
+  <button class="btn-done" id="btnDone" onclick="submitReport()" disabled>Готово — отправить отчёт</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const TG_TOKEN   = '8650722744:AAEhzkZ93pFgPYp4Ch_cK5F0drWUXs-Oxss';
+  const TG_CHAT_ID = '-5251061176';
+
+  const now = new Date();
+  document.getElementById('currentDate').textContent =
+    now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  function updateBtn() {
+    const checked = document.getElementById("chk_clean").checked;
+    document.getElementById("btnDone").disabled = !checked;
+  }
+
+  function saveCashStart() {
+    localStorage.setItem('cash_start', document.getElementById('f_cash_start').value);
+  }
+
+  function loadCashStart() {
+    const v = localStorage.getItem('cash_start');
+    if (v) { document.getElementById('f_cash_start').value = v; recalc(); }
+  }
+
+  function val(id) { return parseFloat(document.getElementById(id).value) || 0; }
+  function fmt(n)  { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+
+  function setVerifyBlock(blockId, badgeId, detailId, state, detail) {
+    document.getElementById(blockId).className = 'verify-block' + (state === 'ok' ? ' ok' : state === 'fail' ? ' fail' : '');
+    const badge = document.getElementById(badgeId);
+    badge.className  = 'verify-badge ' + (state === 'ok' ? 'badge-ok' : state === 'fail' ? 'badge-fail' : 'badge-wait');
+    badge.textContent = state === 'ok' ? 'Сходится ✓' : state === 'fail' ? 'Расхождение ✗' : '—';
+    document.getElementById(detailId).innerHTML = detail || '';
+  }
+
+  function recalc() {
+    const revenue   = val('f_revenue');
+    const card      = val('f_card');
+    const cashPay   = val('f_cash_payment');
+    const phone     = val('f_phone_transfer');
+    const rent      = val('f_rent');
+    const salary    = val('f_salary');
+    const cashReg   = val('f_cash_register');
+    const cashStart = val('f_cash_start');
+
+    const anyFilled = revenue || card || cashPay || phone || rent || salary || cashReg || cashStart;
+    if (!anyFilled) {
+      document.getElementById('verifyPanel').classList.remove('visible');
+      document.getElementById('summaryBanner').classList.remove('visible');
+      return;
+    }
+    document.getElementById('verifyPanel').classList.add('visible');
+
+    // Check 1: Revenue = card + cash + phone
+    const sumPay  = card + cashPay + phone;
+    const revDiff = revenue - sumPay;
+    const revOk   = Math.abs(revDiff) < 0.01;
+    const canRevCheck = revenue > 0 || sumPay > 0;
+
+    if (canRevCheck) {
+      if (revOk) {
+        setVerifyBlock('vb_revenue','vbadge_revenue','vdetail_revenue','ok',
+          `<span class="ok-text">${fmt(revenue)} = Безнал ${fmt(card)} + Нал ${fmt(cashPay)} + Перевод ${fmt(phone)}</span>`);
+      } else {
+        const dir = revDiff > 0
+          ? `Выручка <b>больше</b> суммы оплат на <span class="fail-text">${fmt(Math.abs(revDiff))}</span>`
+          : `Выручка <b>меньше</b> суммы оплат на <span class="fail-text">${fmt(Math.abs(revDiff))}</span>`;
+        setVerifyBlock('vb_revenue','vbadge_revenue','vdetail_revenue','fail',
+          `${fmt(revenue)} ≠ Безнал ${fmt(card)} + Нал ${fmt(cashPay)} + Перевод ${fmt(phone)}<br>${dir}`);
+      }
+    } else {
+      setVerifyBlock('vb_revenue','vbadge_revenue','vdetail_revenue','','');
+    }
+
+    // Check 2: Cash register = cashStart + cashPay + phone - rent - salary
+    const expectedCash = cashStart + cashPay - rent - salary;
+    const cashDiff = cashReg - expectedCash;
+    const cashOk   = Math.abs(cashDiff) < 0.01;
+    const canCashCheck = cashReg > 0 || rent > 0 || salary > 0 || cashPay > 0 || phone > 0;
+
+    if (canCashCheck) {
+      if (cashOk) {
+        setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','ok',
+          `<span class="ok-text">Касса ${fmt(cashReg)} = Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}</span>`);
+      } else {
+        const dir = cashDiff > 0
+          ? `В кассе <b>излишек</b> на <span class="fail-text">${fmt(Math.abs(cashDiff))}</span> (ожидалось ${fmt(expectedCash)})`
+          : `В кассе <b>недостача</b> на <span class="fail-text">${fmt(Math.abs(cashDiff))}</span> (ожидалось ${fmt(expectedCash)})`;
+        setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','fail',
+          `${fmt(cashReg)} ≠ Начало ${fmt(cashStart)} + Нал ${fmt(cashPay)} − Аренда ${fmt(rent)} − Зарплата ${fmt(salary)}<br>${dir}`);
+      }
+    } else {
+      setVerifyBlock('vb_cash','vbadge_cash','vdetail_cash','','');
+    }
+
+    // Summary banner
+    const banner = document.getElementById('summaryBanner');
+    const hasChecks = canRevCheck || canCashCheck;
+    if (hasChecks) {
+      banner.classList.add('visible');
+      const allOk = (!canRevCheck || revOk) && (!canCashCheck || cashOk);
+      if (allOk) {
+        banner.className = 'summary-banner visible all-ok';
+        document.getElementById('bannerIcon').textContent = '✓';
+        document.getElementById('bannerText').textContent = 'Все данные сходятся';
+        document.getElementById('bannerSub').textContent  = 'Можно отправлять отчёт';
+      } else {
+        banner.className = 'summary-banner visible has-fail';
+        document.getElementById('bannerIcon').textContent = '!';
+        document.getElementById('bannerText').textContent = 'Обнаружены расхождения';
+        document.getElementById('bannerSub').textContent  = 'Проверьте данные перед отправкой';
+      }
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  async function submitReport() {
+    const name      = document.getElementById('f_name').value.trim();
+    const revenue   = val('f_revenue');
+    const card      = val('f_card');
+    const cashPay   = val('f_cash_payment');
+    const phone     = val('f_phone_transfer');
+    const rent      = val('f_rent');
+    const rentTotal = val('f_rent_total');
+    const salary    = val('f_salary');
+    const cashReg   = val('f_cash_register');
+    const cashStart = val('f_cash_start');
+
+    if (!name)    { showToast('Введите имя продавца', 'error'); return; }
+    if (!revenue) { showToast('Введите выручку за день', 'error'); return; }
+
+    const sumPay       = card + cashPay + phone;
+    const revDiff      = revenue - sumPay;
+    const revOk        = Math.abs(revDiff) < 0.01;
+    const expectedCash = cashStart + cashPay - rent - salary;
+    const cashDiff     = cashReg - expectedCash;
+    const cashOk       = Math.abs(cashDiff) < 0.01;
+    const allOk        = revOk && cashOk;
+
+    const revLine = revOk ? `✅ Выручка сходится`
+      : revDiff > 0 ? `❌ Выручка: на ${fmt(Math.abs(revDiff))} больше суммы оплат`
+                    : `❌ Выручка: на ${fmt(Math.abs(revDiff))} меньше суммы оплат`;
+
+    const cashLine = cashOk ? `✅ Касса сходится`
+      : cashDiff > 0 ? `❌ Касса: излишек ${fmt(Math.abs(cashDiff))} (ожидалось ${fmt(expectedCash)})`
+                     : `❌ Касса: недостача ${fmt(Math.abs(cashDiff))} (ожидалось ${fmt(expectedCash)})`;
+
+    const dateStr = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    const msg = [
+      `📋 *Ежедневный отчёт*`,
+      `📅 ${dateStr}`,
+      ``,
+      `👤 *Продавец:* ${name}`,
+      ``,
+      `💵 *Наличные на начало смены:* ${fmt(cashStart)}`,
+      ``,
+      `💰 *Выручка за день:* ${fmt(revenue)}`,
+      `💳 *Безналичная оплата:* ${fmt(card)}`,
+      `💵 *Наличная оплата:* ${fmt(cashPay)}`,
+      `📱 *Перевод на карту через телефон:* ${fmt(phone)}`,
+      ``,
+      `🏠 *Отложено в аренду:* ${fmt(rent)}`,
+      `🏦 *Всего в аренде:* ${fmt(rentTotal)}`,
+      `💼 *Зарплата:* ${fmt(salary)}`,
+      ``,
+      `🏧 *Наличные в кассе (остаток):* ${fmt(cashReg)}`,
+      ``,
+      `${allOk ? '✅' : '⚠️'} *Сверка данных*`,
+      revLine,
+      cashLine,
+    ].join('\n');
+
+    const btn = document.querySelector('.btn-done');
+    btn.disabled = true;
+    btn.textContent = 'Отправка...';
+
+    try {
+      const resp = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: TG_CHAT_ID, text: msg, parse_mode: 'Markdown' })
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        showToast('Отчёт отправлен! ✓', 'success');
+        localStorage.removeItem('cash_start');
+        clearForm();
+      } else {
+        showToast('Ошибка: ' + (data.description || 'неизвестно'), 'error');
+      }
+    } catch(e) {
+      showToast('Ошибка сети. Проверьте подключение.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.disabled = !document.getElementById('chk_clean').checked;
+    btn.textContent = 'Готово — отправить отчёт';
+    }
+  }
+
+  function clearForm() {
+    ['f_name','f_revenue','f_cash_register','f_card','f_cash_payment',
+     'f_rent','f_rent_total','f_salary','f_phone_transfer','f_cash_start']
+      .forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('verifyPanel').classList.remove('visible');
+    document.getElementById('summaryBanner').classList.remove('visible');
+    document.getElementById('chk_clean').checked = false;
+    document.getElementById('btnDone').disabled = true;
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  loadCashStart();
+</script>
+</body>
+</html>
